@@ -55,6 +55,10 @@
 
 <p>WMAnalysis is also the basis for some deeper analysis, including temporal and functional breakdowns. The tools is able to output memory consumption over time, for each process, in the form of a GNUPlot graph script. It can also produce a list of memory allocations grouped by call site location, and ordered by size, helping to identify the largest consuming functions.</p>
 
+<p><img src="http://www2.warwick.ac.uk/fac/sci/dcs/research/pcav/areas/hpc/download/phdmesh.png" alt="WMAnalysis graph of phdMesh HWM on 4 cores"></p>
+
+<p>The image above demonstrates the memory consumption profile of rank 2, as part of a 4 core execution of phdMesh.</p>
+
 <h3>WMModel</h3>
 
 <p>WMModel is an experimental analysis feature. By analysing multiple HWM trace files, the tool identifies patterns in memory consumption. This is done by looking at the trend between allocation size within the same call stack location. By relating the growth of allocation size related to the problem size and core count the tool produces a generalised formula to predict HWM at different problem scale.</p>
