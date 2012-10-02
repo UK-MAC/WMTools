@@ -83,13 +83,30 @@ WMAnalysis has server different modes of operation. As a serial application it c
 
 To analyse a specific trace file:
 
-`WMAnalysis WMTrace0001/trace-0.z`
+`mpirun -np 1 WMAnalysis WMTrace0001/trace-0.z`
 
 WMAnalysis can also be run in parallel to analyse a full jobs worth of files. Note the job size for postprocession does not have to be the same as that of the original job, it will distribute the workload over all available processes until finished.
 
 To analyse a specific folder of trace files:
 
 `mpirun -np <x> WMAnalysis WMTrace0001`
+
+## Serial Analysis ##
+
+For running the analysis outside of the MPI environment there is a serial version of WMAnalysis with no dependency on the MPI library.
+To build simply run:
+`cd src; make clean WMAnalysisSerial;`
+
+This builds a `bin/WMAnalysisSerial` binary.
+
+This binary is also built with the standard make all command:
+
+`make clean all`
+
+The binary can be run as before:
+
+`WMAnalysisSerial WMTrace0001/trace-0.z`
+
 
 ## Command line arguments ##
 
@@ -125,3 +142,35 @@ WMHeatMap can be configured with a number of simple command line arguments.
 * `-o=<output dir>`
 
   Specify an output directory. Defaults to a uniquely named WMHeatMap0001 folder.
+ 
+## VisIt Output ##
+
+
+To view the output in VisIt first open VisIt. 
+
+To open from the output directory WMHeatMap.hdf50001 open:
+
+`WMHeatMap.hdf50001/WMHeatMap.visit`
+
+Then click Add:
+
+* Mesh -> quadmesh
+* Label -> Rank
+* Pseudocolor -> Memory
+* Subsets -> domains
+
+Configure Pseudocolor - Memory:
+* Limits -> Minimum 0 & Maximum 1
+  
+Configure Subsets - domains:
+* Subset colors -> Single
+* Options -> Wireframe
+* Point/Line Style -> Line Width 5
+
+Apply settings then Draw.
+  
+ # WMModel #
+ 
+ WMModel is still slightly experimental and is not included in this current build.
+ 
+ Watch this space for more updates. 
