@@ -1,4 +1,4 @@
-# WMTools #
+# WMTools - Dev Version#
 
 Warwick Memory Tools - Suite of tools for parallel application memory consumption analysis
 
@@ -67,19 +67,35 @@ This file can contain the following options (each specified on a new line):
 
   This option enables automated post processing at the end of execution. This uses all the available processes of the job to post process all of the trace files, to provide instantanious memory consumption HWM data.
 
+* --WMTOOLSPOSTPROCESSGRAPH
+
+  This option enables automated post processing at the end of execution, in addition generate graph scripts for each trace (again done in parallel).
+
+* --WMTOOLSPOSTPROCESSFUNCTIONS
+
+  This option enables automated post processing at the end of execution, in addition generate function breakdown lists for each trace (again done in parallel).
+
 ## Output ##
 
 WMTrace outputs a trace file per process in a uniquely named folder per run. 
 
 `WMTrace0001`
 
-File names ahve the extension .z to indicate they are zlib compressed files.
+File names have the extension .z to indicate they are zlib compressed files.
 
 `WMTrace0001/trace-0.z`
 
+Graph files have the extension .graph, and are bash scripts which generate gnuplot graphs of memory consumption, when executed.
+
+`WMTrace0001/trace-0.graph`
+
+Functions files have the extension .functions, and are text files with ordered memory consumption lists grouped by function site, and ordered my size. 
+
+`WMTrace0001/trace-0.functions`
+
 # WMAnalysis #
 
-WMAnalysis has server different modes of operation. As a serial application it can be used to replay a single trace file for memory consumption statistics.
+WMAnalysis has several different modes of operation. As a serial application it can be used to replay a single trace file for memory consumption statistics.
 
 To analyse a specific trace file:
 
@@ -114,12 +130,12 @@ WMAnalysis takes a few optional command line arguments to generate additional in
 
 * `--graph`
 
-  This option will produce gnuplot graph scipts for every trace file provided.
+  This option will produce gnuplot graph scripts for every trace file provided.
   This requies two passes of the trace file and so can be quite slow.
   The file generated will be named with a .graph extension, and when run will generate a png.
 * `--functions`
 
-  This option produces an orderd list of functions consumption at point of high water mark - ordered by size.
+  This option produces an ordered list of functions consumption at point of high water mark - ordered by size.
   The file generated will be named with a .functions extension, but will be a text file.
 
 # WMHeatMap #
@@ -171,6 +187,31 @@ Apply settings then Draw.
   
 # WMModel #
  
- WMModel is still slightly experimental and is not included in this current build.
+WMModel is still slightly experimental and is only included in this current build as an untested feature.
+
+WMModel is designed to analyse the similarities between the point of high water mark between multiple trace files.
+By either strong or weak scaling you can provide the trace file of the HWM thread from multiple different runs at different scale, or problem size.
+WMModel will then generate an equation based on the problem size and core count, to predict the memory consumption at larger scale.
  
- Watch this space for more updates. 
+The model currently only works on two trace files.
+
+To run the model requires the user to know the global problem size, and specify it to WMModel along with the trace files e.g.
+
+`WMModel --tracefiles WMTrace/trace-3.z WMTrace0000/trace-1.z --problemsize 1000000 1000000`
+
+The output will look somethng like this:
+
+```
+For C = Core Count, P = Global Problem.
+ Y(C, P)=
+        229509 + 34*C + 719.456*(P/C)
+```
+
+At this stage the model only models three types of relationship: Static (does not change between the files), Core based (scales proportionally to core count changes) and Problem based (scales proportionally to the estimated per core problem size).
+
+There is experimental support for ghost cells, by specifying the problem and processor decompositions.
+Here we try to match allocations which have scaled according to the total number of cells, including ghost cells, per processor.
+
+E.g. For a strong scaled 120x120x120 problem, from 32 to 64 cores, with a 2D decomposition of 8x4 and 8x8 respectively, comparing the HWM points from rank 0 on both traces.
+
+`WMModel --tracefiles 32/WMTrace/trace-0.z 64/WMTrace/trace-0.z --problemsize3d 120 120 120 120 120 120 --decomp2d 8 4 8 8`
