@@ -63,12 +63,14 @@ DWARF_LIB=#$(LIB_DIR)$(DWARF_DIR)/lib $(LIB)dwarf
 
 
 #HDF5
-HDF5_DIR=/opt/lib/gnu/hdf5/parallel/$(MPI_VERSION)/1.8.8
+#HDF5_DIR=/opt/lib/gnu/hdf5/parallel/$(MPI_VERSION)/1.8.8
+HDF5_DIR=/opt/lib/gnu/hdf5/1.8.8/parallel/ompi/1.4.3
 HDF5_INC=$(INC_DIR)$(HDF5_DIR)/include
 HDF5_LIB=$(LIB_DIR)$(HDF5_DIR)/lib $(LIB)hdf5
 
 #Silo - Depends on HDF5
-SILO_DIR=/opt/lib/gnu/silo/$(MPI_VERSION)/4.8
+#SILO_DIR=/opt/lib/gnu/silo/$(MPI_VERSION)/4.8
+SILO_DIR=/opt/lib/gnu/silo/4.8
 SILO_INC=$(INC_DIR)$(SILO_DIR)/include $(HDF5_INC)
 SILO_LIB=$(LIB_DIR)$(SILO_DIR)/lib $(LIB)siloh5 $(HDF5_LIB)
 
