@@ -51,7 +51,7 @@ Util.o: .FORCE
      
 	
 
-WMTraceCPP_OBJS=timers.o $(UTIL_DIR)/ElfData.o $(UTIL_DIR)/Util.o $(UTIL_DIR)/ConsumptionGraph.o $(UTIL_DIR)/ConsumptionTracker.o $(UTIL_DIR)/FunctionObj.o $(UTIL_DIR)/FunctionMap.o $(UTIL_DIR)/StackProcessingMap.o $(UTIL_DIR)/TraceReader.o WMAnalysis.o $(UTIL_DIR)/Compress.o $(UTIL_DIR)/Decompress.o $(UTIL_DIR)/FrameData.o $(UTIL_DIR)/VirtualMemoryData.o $(UTIL_DIR)/TraceBuffer.o $(UTIL_DIR)/CallStackTraversal.o $(UTIL_DIR)/StackMap.o MemoryFunction.o WMTrace.o 
+WMTraceCPP_OBJS=WMTimer.o $(UTIL_DIR)/ElfData.o $(UTIL_DIR)/Util.o $(UTIL_DIR)/ConsumptionGraph.o $(UTIL_DIR)/ConsumptionTracker.o $(UTIL_DIR)/FunctionObj.o $(UTIL_DIR)/FunctionMap.o $(UTIL_DIR)/StackProcessingMap.o $(UTIL_DIR)/TraceReader.o WMAnalysis.o $(UTIL_DIR)/Compress.o $(UTIL_DIR)/Decompress.o $(UTIL_DIR)/FrameData.o $(UTIL_DIR)/VirtualMemoryData.o $(UTIL_DIR)/TraceBuffer.o $(UTIL_DIR)/CallStackTraversal.o $(UTIL_DIR)/StackMap.o MemoryFunction.o WMTrace.o 
 
 WMTrace: $(WMTraceCPP_OBJS) $(WMTRACE_LIB_DIR)
 	$(CXX) $(LFLAGS) $(WMTraceCPP_OBJS)  -Wl,-soname,$(FULLLIBNAME).$(VERSION) -o $(FULLLIBNAME).$(VERSION) $(WMTraceCPP_LIBS)

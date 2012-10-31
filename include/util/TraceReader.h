@@ -170,6 +170,16 @@ private:
 	 */
 	bool checkIDSearch(long id);
 
+
+	/**
+	 * A function to read a timer frame.
+	 * A timer frame contains the elapsed time since the program started.
+	 * This is used to correct the timer drift introduced to excessive compression of tiny numbers.
+	 * 'T'<(double) elapsed time>
+	 *
+	 */
+	void processTimer();
+
 public:
 	/**
 	 * Constructor for the TraceReader object.

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <stack>
 
-#include "../include/timers.h"
+#include "../include/WMTimer.h"
 #include "../include/WMTrace.h"
 #include "../include/WMAnalysis.h"
 #include "../include/util/TraceReader.h"

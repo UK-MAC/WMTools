@@ -189,8 +189,11 @@ void TraceReader::processEvents() {
 			allocID = processRealloc();
 			data_remaining -= frame_data->getReallocFrameSize();
 		} else if (flag == frame_data->FREEFLAG) { 		//Free event
-			allocID = processFree();
-			data_remaining -= frame_data->getFreeFrameSize();
+					allocID = processFree();
+					data_remaining -= frame_data->getFreeFrameSize();
+		} else if (flag == frame_data->TIMERFLAG) { 		//Timer frame
+					processTimer();
+					data_remaining -= frame_data->getTimerFrameSize();
 		} else {
 			flag = frame_data->FINISHFLAG;
 			data_remaining--;
@@ -384,6 +387,15 @@ vector<string> TraceReader::getCallStack(int id) {
 	}
 
 	return functions;
+
+}
+
+
+void TraceReader::processTimer(){
+	/* Elapsed time variable */
+	double elapsed_time;
+	zlib_decomp->request(&elapsed_time, sizeof(double));
+	hwm_tracker->updateElapsedTime(elapsed_time);
 
 }
 

@@ -285,3 +285,14 @@ void TraceBuffer::addFree(long address, float time) {
 
 }
 
+void TraceBuffer::addTimer(double time){
+	ensureBufferSpace(frame_data->getTimerFrameSize());
+
+	//Flag
+	copyFlag(frame_data->TIMERFLAG);
+
+	//Data
+	copyToBuffer(&time, sizeof(double));
+
+}
+

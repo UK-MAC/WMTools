@@ -58,7 +58,8 @@ WMTrace::WMTrace() {
 	wmtrace_realloc_counter = 0;
 	wmtrace_free_counter = 0;
 
-	time = NULL;
+	time = new WMTimer();
+	timer_counter=0;
 
 
 	/* Control flags */
@@ -73,10 +74,24 @@ WMTrace::~WMTrace() {
 	delete stack_map;
 	delete unwind;
 	delete wmtrace_buffer;
+	delete time;
+}
+
+void WMTrace::printTimer(){
+	timer_counter++;
+	/* Only print ever TIMERFREQUENCY invocations */
+	if(timer_counter%TIMERFREQUENCY == 0){
+		double elapsed_time;
+		time->elapsedTime(&elapsed_time);
+		wmtrace_buffer->addTimer(elapsed_time);
+	}
 }
 
 
 void *WMTrace::traceMalloc(long size) {
+	/* Call Timer */
+	printTimer();
+
 	int stackID = 0;
 	void * ptr = __libc_malloc(size);
 	if (complex_trace) {	//Stack Traversal
@@ -89,6 +104,10 @@ void *WMTrace::traceMalloc(long size) {
 }
 
 void * WMTrace::traceCalloc(long size, long count) {
+	/* Call Timer */
+	printTimer();
+
+
 	int stackID = 0;
 	if (complex_trace) {	//Stack Traversal
 		vector<long> call_stack = unwind->fullUnwind();
@@ -103,6 +122,10 @@ void * WMTrace::traceCalloc(long size, long count) {
 }
 
 void *WMTrace::traceRealloc(void *ptrold, long size) {
+	/* Call Timer */
+	printTimer();
+
+
 	void *ptr_new = __libc_realloc(ptrold, size);
 	wmtrace_buffer->addRealloc((long) ptrold, (long) ptr_new, getTimeDelta(),
 			size);
@@ -110,6 +133,10 @@ void *WMTrace::traceRealloc(void *ptrold, long size) {
 }
 
 void WMTrace::traceFree(void *ptr) {
+	/* Call Timer */
+	printTimer();
+
+
 	wmtrace_buffer->addFree((long) ptr, getTimeDelta());
 	__libc_free(ptr);
 }

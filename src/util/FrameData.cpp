@@ -10,6 +10,8 @@ FrameData::FrameData() {
 	realloc_frame_size = sizeof(char) + (3 * sizeof(long)) + sizeof(float);
 	free_frame_size = sizeof(char) + sizeof(long) + sizeof(float);
 
+	timer_frame_size = sizeof(char) + sizeof(double);
+
 	data_forward = sizeof(char) + sizeof(long);
 	elf_forward = sizeof(char) + (2 * sizeof(long)) + sizeof(int);
 	virtual_forward = sizeof(char) + sizeof(long) + sizeof(int);

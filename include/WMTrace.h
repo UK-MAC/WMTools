@@ -11,7 +11,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "timers.h"
+#include "WMTimer.h"
 #include "util/TraceBuffer.h"
 #include "util/StackMap.h"
 #include "util/CallStackTraversal.h"
@@ -48,6 +48,7 @@ private:
 
 	/* Timer object */
 	WMTimer *time;
+	long timer_counter;
 
 	/* Timers variables */
 	double wmtrace_app_stime;
@@ -110,6 +111,13 @@ public:
 	}
 
 	/**
+	 * A function to print the timer frame, every x number of allocations, if required.
+	 * Uses the WMTimer object to extract the elapsed time, to correct any drift.
+	 * Called on every event, but only output every TIMERFREQUENCY calls.
+	 */
+	void printTimer();
+
+	/**
 	 * Increment Malloc Counter
 	 */
 	void incrementMallocCounter() {
@@ -141,7 +149,7 @@ public:
 	 * Mark the tracer as having started
 	 */
 	void startTracing() {
-		time = new WMTimer();
+		time->syncStart();
 		time->todTimer(&wmtrace_fun_etime);
 		wmtrace_started = 1;
 	}

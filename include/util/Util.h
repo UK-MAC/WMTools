@@ -33,6 +33,8 @@ using namespace std;
 #define BUFFERSIZE 33554432
 /* Define the size of the decompression chunk */
 #define DCCHUNK 1048576
+/* Define the timer frame frequency */
+#define TIMERFREQUENCY 100
 
 /**
  * WMUtils is a collection of static utility functions.

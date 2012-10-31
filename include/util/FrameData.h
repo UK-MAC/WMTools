@@ -20,6 +20,7 @@ private:
 	int calloc_frame_size;
 	int realloc_frame_size;
 	int free_frame_size;
+	int timer_frame_size;
 
 	/* Partial frame sizes */
 	int data_forward;
@@ -34,6 +35,7 @@ public:
 	static const char CALLOCFLAG = 'C';
 	static const char REALLOCFLAG = 'R';
 	static const char FREEFLAG = 'F';
+	static const char TIMERFLAG = 'T';
 
 	static const char STACKFLAG = 'S';
 	static const char ELFFLAG = 'E';
@@ -78,6 +80,14 @@ public:
 	 */
 	int getReallocFrameSize() const {
 		return realloc_frame_size;
+	}
+
+	/**
+	 * Getter for Timer frame size
+	 * @return Timer frame size
+	 */
+	int getTimerFrameSize() const {
+		return timer_frame_size;
 	}
 
 	/**

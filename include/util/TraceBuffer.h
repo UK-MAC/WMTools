@@ -199,6 +199,16 @@ public:
 	 */
 	void addFree(long address, float time);
 
+	/**
+	 * Function to write a timer frame to the output stream.
+	 * Used to correct timer drift.
+	 * Fixed frame size - timer_frame_size
+	 * 'T'<(double) elapsed time>
+	 *
+	 * @param[in] time The elapsed time since application start.
+	 */
+	void addTimer(double time);
+
 };
 
 #endif

@@ -203,6 +203,13 @@ public:
 		consumption->setRank(rank);
 	}
 
+	/**
+	 * A function to reset the current time, to the elapsed time as contained within a timer frame of the output.
+	 */
+	void updateElapsedTime(double elapsed_time){
+		curr_time = elapsed_time;
+	}
+
 };
 
 #endif
