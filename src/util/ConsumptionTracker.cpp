@@ -95,14 +95,14 @@ set<FunctionSiteAllocation *, FunctionSiteAllocation::comparator> ConsumptionHWM
 	set<FunctionSiteAllocation *, FunctionSiteAllocation::comparator> functions;
 
 	allocation_map_it = allocation_map.begin();
-
+	long total_count = 0;
 	while (allocation_map_it != allocation_map.end()) {
-		//Make a new FunctionSiteAllocation object from the values from the allocation map
+		/* Make a new FunctionSiteAllocation object from the values from the allocation map */
 		FunctionSiteAllocation * fsa = new FunctionSiteAllocation(
 				allocation_map_it->second.getStackID(),
 				allocation_map_it->second.getSize());
-
-		//Try to inser the new object - but test to see if it clashed with an existing value.
+		total_count += allocation_map_it->second.getSize();
+		/* Try to inser the new object - but test to see if it clashed with an existing stack id value. */
 		pair<
 				set<FunctionSiteAllocation *, FunctionSiteAllocation::comparator>::iterator,
 				bool> insert_test = functions.insert(fsa);
@@ -114,6 +114,7 @@ set<FunctionSiteAllocation *, FunctionSiteAllocation::comparator> ConsumptionHWM
 
 		allocation_map_it++;
 	}
+
 
 	return functions;
 

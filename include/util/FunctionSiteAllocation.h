@@ -104,7 +104,10 @@ public:
 	 */
 	struct comparatorMem {
 		bool operator ()(FunctionSiteAllocation *a, FunctionSiteAllocation *b) {
-			return a->getMemory() < b->getMemory();
+			if(a->getMemory() == b->getMemory())
+				return a->getStackId() < b->getStackId();
+			else
+				return a->getMemory() < b->getMemory();
 		}
 	};
 };
