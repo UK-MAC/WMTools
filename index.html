@@ -52,7 +52,7 @@
 
 <p>WMAnalysis is also the basis for some deeper analysis, including temporal and functional breakdowns. The tools is able to output memory consumption over time, for each process, in the form of a GNUPlot graph script. It can also produce a list of memory allocations grouped by call site location, and ordered by size, helping to identify the largest consuming functions.</p>
 
-<p><img src="http://www2.warwick.ac.uk/fac/sci/dcs/research/pcav/areas/hpc/download/phdmesh.png" alt="WMAnalysis graph of phdMesh HWM on 4 cores"></p>
+<p><img src="images/phdMesh.png" alt="WMAnalysis graph of phdMesh HWM on 4 cores"></p>
 
 <p>The image above demonstrates the memory consumption profile of rank 2, as part of a 4 core execution of phdMesh.</p>
 
@@ -63,6 +63,8 @@
 <h3>WMHeatMap</h3>
 
 <p>WMHeatMap is another means of data visualisation. The tool produces a VisIt output (in Silo format) mapping consumption over time for all processors in the job grouped by rank. The data is sampled from the complete temporal trace, and highlights any imbalance between the memory consumption between processes.</p>
+
+<p><img src="images/WMHeatMapphdMesh.png" alt="WMHeatMap graph of phdMesh HWM on 32 cores"></p>
 
 <h1>Publications</h1>
 
