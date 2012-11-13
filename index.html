@@ -1,37 +1,34 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <title>WMTools by Warwick-PCAV</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <title>WMTools by Warwick-PCAV</title>
   </head>
-
   <body>
-    <div id="container">
-      <div class="inner">
+    <div class="wrapper">
+      <header>
+        <h1>WMTools</h1>
+        <p>Warwick Memory Tools - Suite of tools for parallel application memory consumption analysis</p>
 
-        <header>
-          <h1>WMTools</h1>
-          <h2>Warwick Memory Tools - Suite of tools for parallel application memory consumption analysis</h2>
-        </header>
+        <p class="view"><a href="https://github.com/Warwick-PCAV/WMTools">View the Project on GitHub <small>Warwick-PCAV/WMTools</small></a></p>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/Warwick-PCAV/WMTools/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/Warwick-PCAV/WMTools/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/Warwick-PCAV/WMTools" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
 
-        <hr>
-
-        <section id="main_content">
-          <p>Written as a PhD project by <a href="http://www2.warwick.ac.uk/fac/sci/dcs/people/research/csrfan/">Oliver Perks</a> at the University of Warwick. WMTools is a suite of applications designed to assist with the profiling and subsequent analysis of memory consumption data for parallel applications.</p>
+        <ul>
+          <li><a href="https://github.com/Warwick-PCAV/WMTools/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/Warwick-PCAV/WMTools/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/Warwick-PCAV/WMTools">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p>Written as a PhD project by <a href="http://www2.warwick.ac.uk/fac/sci/dcs/people/research/csrfan/">Oliver Perks</a> at the University of Warwick. WMTools is a suite of applications designed to assist with the profiling and subsequent analysis of memory consumption data for parallel applications.</p>
 
 <p>Even at large scale many applications still stuggle with excessive memory consumption. This project aims to provide the necessasary tools to analyse the memory usage and help identify memory problems.</p>
 
@@ -55,7 +52,7 @@
 
 <p>WMAnalysis is also the basis for some deeper analysis, including temporal and functional breakdowns. The tools is able to output memory consumption over time, for each process, in the form of a GNUPlot graph script. It can also produce a list of memory allocations grouped by call site location, and ordered by size, helping to identify the largest consuming functions.</p>
 
-<p><img src="images/phdMesh.png" alt="WMAnalysis graph of phdMesh HWM on 4 cores"></p>
+<p><img src="http://www2.warwick.ac.uk/fac/sci/dcs/research/pcav/areas/hpc/download/phdmesh.png" alt="WMAnalysis graph of phdMesh HWM on 4 cores"></p>
 
 <p>The image above demonstrates the memory consumption profile of rank 2, as part of a 4 core execution of phdMesh.</p>
 
@@ -67,10 +64,6 @@
 
 <p>WMHeatMap is another means of data visualisation. The tool produces a VisIt output (in Silo format) mapping consumption over time for all processors in the job grouped by rank. The data is sampled from the complete temporal trace, and highlights any imbalance between the memory consumption between processes.</p>
 
-<p><img src="images/WMHeatMapphdMesh.png" alt="WMHeatMap VisIt dump of phdMesh HWM on 32 cores"></p>
-
-<p>The above image illustrates the proportional memory consumption between multiple cores on a 32 core run of phdMesh. Where a colour of red (value of 1) indicates HWM consumption of the job.</p>
-
 <h1>Publications</h1>
 
 <p>Perks, O.F.J. and Beckingsale, D.A. and Hammond, S.D. and Miller, I. and Herdman, J.A. and Vadgama, A. and Bhalerao, A.H. and He, L. and Jarvis, S.A. (2012) <a href="http://eprints.dcs.warwick.ac.uk/1583/">Towards Automated Memory Model Generation Via Event Tracing.</a> The Computer Journal. ISSN 0010-4620</p>
@@ -78,15 +71,23 @@
 <p>Perks, O.F.J. and Hammond, S.D. and Pennycook, S.J. and Jarvis, S.A. (2011) <a href="http://eprints.dcs.warwick.ac.uk/785/">WMTools - Assessing Parallel Application Memory Utilisation at Scale.</a> Computer Performance Engineering. Lecture Notes in Computer Science, 6977. pp. 148-162.</p>
 
 <p>Perks, O.F.J. and Hammond, S.D. and Pennycook, S.J. and Jarvis, S.A. (2011) <a href="http://eprints.dcs.warwick.ac.uk/727/">WMTrace - A Lightweight Memory Allocation Tracker and Analysis Framework.</a> In: Proceedings of the UK Performance Engineering Workshop (UKPEW'11), 7-8th July, 2011, Bradford, United Kingdom.</p>
-        </section>
-
-        <footer>
-          WMTools is maintained by <a href="https://github.com/Warwick-PCAV">Warwick-PCAV</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
-
-        
-      </div>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/Warwick-PCAV">Warwick-PCAV</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-36190086-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
   </body>
 </html>
