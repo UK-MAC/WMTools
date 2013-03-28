@@ -19,25 +19,18 @@ extern __typeof (realloc) __libc_realloc;
 extern __typeof (free) __libc_free;
 }
 
-/**
- * Wrapper to MPI_Init
- *
- * @param argc Count of number of arguements
- * @param argv Pointer to arguements list
- * @return MPI_Error of function
- */
-int MPI_Init(int *argc, char ***argv) {
 
-	int ret = PMPI_Init(argc, argv);
+int init_wmtrace(int parallel_mode){
+	
 	WMT = new WMTrace();
-
+	
 	/* Read from config file */
 	char line[256];
 	/* Try ./.WMToolsConfig then ~/.WMToolsConfig if not found */
 	ifstream local_file(".WMToolsConfig");
 	if (!local_file.good())
 		local_file.open("~/.WMToolsConfig");
-
+	
 	if (local_file.good()) {
 		while (!local_file.eof()) {
 			local_file.getline(line, 256);
@@ -53,30 +46,72 @@ int MPI_Init(int *argc, char ***argv) {
 				WMT->setPostProcessFunctions(true);
 			}
 		}
-
+		
 	}
-
+	
 	int rank, comm;
-
+	
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &comm);
-
+	
 	WMT->setRank(rank);
 	WMT->setCommSize(comm);
-
+	
 	/* Barrier to ensure same start time */
 	MPI_Barrier (MPI_COMM_WORLD);
-
+	
 	WMT->startTracing();
+	
+	return 0;
+	
+}
+
+
+
+
+/**
+ * Wrapper to MPI_Init
+ *
+ * @param argc Count of number of arguements
+ * @param argv Pointer to arguements list
+ * @return MPI_Error of function
+ */
+int MPI_Init(int *argc, char ***argv) {
+
+	int ret = PMPI_Init(argc, argv);
+	
+	init_wmtrace(MPI_THREAD_SINGLE);
 
 	return ret;
 }
+
+
+/**
+* Wrapper to MPI_Init_thread
+*
+* @param argc Count of number of arguements
+* @param argv Pointer to arguements list
+* @param required Level of desired thread support
+* @param[out] provided Level of provided thread support
+* @return MPI_Error of function
+*/
+int MPI_Init_thread(int *argc, char ***argv, int required, int *provided) {
+	
+	int ret = PMPI_Init_thread(argc, argv, required, provided);
+	
+	init_wmtrace(*provided);
+	
+	return ret;
+}
+
 
 /**
  * Wrapper to MPI_Finalize
  * @return MPI_Error
  */
 int MPI_Finalize() {
+	
+	if(WMT == NULL) return PMPI_Finalize();
 
 	WMT->finishTracing();
 

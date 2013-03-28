@@ -15,4 +15,7 @@ extern "C" {
 
 }
 
+
+int init_wmtrace(int parallel_mode);
+
 #endif
