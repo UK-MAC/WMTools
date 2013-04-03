@@ -48,19 +48,42 @@ WMTrace::WMTrace() {
 	wmtrace_started = 0;
 	wmtrace_finished = 0;
 	wmtrace_active = 0;
+	wmtrace_active_threads = new int[omp_get_max_threads()];
+	wmtrace_fun_stime = new double[omp_get_max_threads()];
+	wmtrace_fun_etime = new double[omp_get_max_threads()];
+	//int i;
+	//for(i=0; i < omp_get_max_threads(); i++)
+		//wmtrace_active_threads[i] = 0;
 
 	/* Timers */
 	wmtrace_app_stime = 0;
-
 	/* Function Counters */
-	wmtrace_malloc_counter = 0;
-	wmtrace_calloc_counter = 0;
-	wmtrace_realloc_counter = 0;
-	wmtrace_free_counter = 0;
-
+	wmtrace_malloc_counter = new long[omp_get_max_threads()];
+	wmtrace_calloc_counter = new long[omp_get_max_threads()];
+	wmtrace_realloc_counter = new long[omp_get_max_threads()];
+	wmtrace_free_counter = new long[omp_get_max_threads()];
+	//for(i=0; i < omp_get_max_threads(); i++){
+		//wmtrace_malloc_counter[i] = 0;
+		//wmtrace_calloc_counter[i] = 0;
+		//wmtrace_realloc_counter[i] = 0;
+		//wmtrace_free_counter[i] = 0;
+	//}
+	
+	#pragma omp parallel num_threads(omp_get_max_threads())
+	{
+		wmtrace_active_threads[omp_get_thread_num()] = 0;
+		wmtrace_malloc_counter[omp_get_thread_num()] = 0;
+		wmtrace_calloc_counter[omp_get_thread_num()] = 0;
+		wmtrace_realloc_counter[omp_get_thread_num()] = 0;
+		wmtrace_free_counter[omp_get_thread_num()] = 0;
+			//cout << "Hello " << omp_get_thread_num() << "\n";
+	}
+	
+	
 	time = new WMTimer();
 	timer_counter=0;
 
+	time->todTimer(&wmtrace_app_stime);
 
 	/* Control flags */
 	complex_trace = false;
@@ -90,53 +113,90 @@ void WMTrace::printTimer(){
 
 void *WMTrace::traceMalloc(long size) {
 	/* Call Timer */
-	printTimer();
+	
+	//printTimer();
 
-	int stackID = 0;
 	void * ptr = __libc_malloc(size);
+	#pragma omp critical (wmt)
+	{
+#ifdef WMDEBUG
+	cout << "Enter Malloc " << omp_get_thread_num() << "\n";
+#endif
+	int stackID = 0;
 	if (complex_trace) {	//Stack Traversal
 		vector<long> call_stack = unwind->fullUnwind();
 		stackID = stack_map->addStack(call_stack);
 	}
 
 	wmtrace_buffer->addMalloc((long) ptr, getTimeDelta(), size, stackID);
+#ifdef WMDEBUG
+	cout << "Exit Malloc " << omp_get_thread_num() << "\n";
+#endif
+	}
 	return ptr;
 }
 
 void * WMTrace::traceCalloc(long size, long count) {
 	/* Call Timer */
-	printTimer();
+	//printTimer();
 
 
+	void * ptr = __libc_calloc(size, count);
+	#pragma omp critical (wmt)
+	{
+#ifdef WMDEBUG
+	cout << "Enter Calloc " << omp_get_thread_num() << "\n";
+#endif
+	
 	int stackID = 0;
 	if (complex_trace) {	//Stack Traversal
 		vector<long> call_stack = unwind->fullUnwind();
 		stackID = stack_map->addStack(call_stack);
 	}
 
-	void * ptr = __libc_calloc(size, count);
 
 	wmtrace_buffer->addCalloc((long) ptr, getTimeDelta(), size *count, stackID);
-
+#ifdef WMDEBUG
+	cout << "Exit Calloc " << omp_get_thread_num() << "\n";
+#endif
+	}
 	return ptr;
 }
 
 void *WMTrace::traceRealloc(void *ptrold, long size) {
 	/* Call Timer */
-	printTimer();
+	//printTimer();
 
 
 	void *ptr_new = __libc_realloc(ptrold, size);
+	#pragma omp critical (wmt)
+	{
+#ifdef WMDEBUG
+	cout << "Enter Realloc " << omp_get_thread_num() << "\n";
+#endif
 	wmtrace_buffer->addRealloc((long) ptrold, (long) ptr_new, getTimeDelta(),
-			size);
+				   size);
+#ifdef WMDEBUG
+	cout << "Exit Realloc " << omp_get_thread_num() << "\n";
+#endif
+	}
 	return ptr_new;
 }
 
 void WMTrace::traceFree(void *ptr) {
 	/* Call Timer */
-	printTimer();
+	//printTimer();
 
-
-	wmtrace_buffer->addFree((long) ptr, getTimeDelta());
+	
+	#pragma omp critical (wmt)
+	{
+#ifdef WMDEBUG
+		cout << "Enter Free " << omp_get_thread_num() << "\n";
+#endif
+		wmtrace_buffer->addFree((long) ptr, getTimeDelta());
+#ifdef WMDEBUG
+		cout << "Exit Free " << omp_get_thread_num() << "\n";
+#endif
+	}
 	__libc_free(ptr);
 }

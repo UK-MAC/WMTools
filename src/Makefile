@@ -18,15 +18,15 @@ TESTS=tests
 
 
 
-CFLAGS=-g -O3 -fPIC -shared -c -I ./ -fbounds-check $(DEFINE)  $(ELF_INC) $(UNWIND_INC) $(DYNA_INC) $(SILO_INC) #$(ZLIB_INC)
+CFLAGS=-g -O3 -fPIC -shared -c -openmp -I ./ -fbounds-check $(DEFINE)  $(ELF_INC) $(UNWIND_INC) $(DYNA_INC) $(SILO_INC) #$(ZLIB_INC)
 SERIALCFLAGS=$(CFLAGS) -D NO_MPI=1
 CXXFLAGS=$(CFLAGS)
 
-LFLAGS=-O3 -shared -fPIC -ldl -g -fbounds-check  -lrt
+LFLAGS=-O3 -shared -fPIC -ldl -g -openmp -fbounds-check  -lrt
 
-BLFLAGS=-O3  -g 
+BLFLAGS=-O3  -g  -openmp
 
-HMLFLAGS=-O3  -g
+HMLFLAGS=-O3  -g -openmp
 
 #Define libs for each app
 WMAnalysisCPP_LIBS=$(LIB)m $(LIB)z $(ELF_LIB)

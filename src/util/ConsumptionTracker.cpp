@@ -27,7 +27,7 @@ ConsumptionHWMTracker::~ConsumptionHWMTracker() {
 long ConsumptionHWMTracker::addAllocation(MallocObj& malloc) {
 	currID++;
 	curr_memory += malloc.getSize();
-	curr_time += malloc.getTime();
+	curr_time = malloc.getTime();
 
 	allocation_map.insert(pair<long, MallocObj>(malloc.getPointer(), malloc));
 
@@ -45,7 +45,7 @@ long ConsumptionHWMTracker::addFree(FreeObj& free) {
 
 	/* Update variables */
 	currID++;
-	curr_time += free.getTime();
+	curr_time = free.getTime();
 
 	/* Try to fetch corresponding malloc, to know free size */
 	MallocObj * malloc = getAllocation(free.getPointer());

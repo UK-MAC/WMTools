@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <mpi.h>
+#include <omp.h>
 
 #include <unistd.h>
 #include <errno.h>
@@ -45,6 +46,9 @@ private:
 	int wmtrace_started;
 	int wmtrace_finished;
 	int wmtrace_active;
+	
+	
+	int *wmtrace_active_threads;
 
 	/* Timer object */
 	WMTimer *time;
@@ -52,14 +56,14 @@ private:
 
 	/* Timers variables */
 	double wmtrace_app_stime;
-	double wmtrace_fun_stime;
-	double wmtrace_fun_etime;
+	double* wmtrace_fun_stime;
+	double* wmtrace_fun_etime;
 
 	/* Function Counters */
-	long wmtrace_malloc_counter;
-	long wmtrace_calloc_counter;
-	long wmtrace_realloc_counter;
-	long wmtrace_free_counter;
+	long* wmtrace_malloc_counter;
+	long* wmtrace_calloc_counter;
+	long* wmtrace_realloc_counter;
+	long* wmtrace_free_counter;
 
 	/* Control Variables */
 	bool complex_trace;
@@ -121,28 +125,28 @@ public:
 	 * Increment Malloc Counter
 	 */
 	void incrementMallocCounter() {
-		wmtrace_malloc_counter++;
+		wmtrace_malloc_counter[omp_get_thread_num()]++;
 	}
 
 	/**
 	 * Increment Calloc Counter
 	 */
 	void incrementCallocCounter() {
-		wmtrace_calloc_counter++;
+		wmtrace_calloc_counter[omp_get_thread_num()]++;
 	}
 
 	/**
 	 * Increment Realloc Counter
 	 */
 	void incrementReallocCounter() {
-		wmtrace_realloc_counter++;
+		wmtrace_realloc_counter[omp_get_thread_num()]++;
 	}
 
 	/**
 	 * Increment Free Counter
 	 */
 	void incrementFreeCounter() {
-		wmtrace_free_counter++;
+		wmtrace_free_counter[omp_get_thread_num()]++;
 	}
 
 	/**
@@ -150,7 +154,7 @@ public:
 	 */
 	void startTracing() {
 		time->syncStart();
-		time->todTimer(&wmtrace_fun_etime);
+		time->todTimer(&wmtrace_fun_etime[omp_get_thread_num()]);
 		wmtrace_started = 1;
 	}
 
@@ -169,24 +173,40 @@ public:
 	 * @return The active state of the library is active
 	 */
 	bool testActive() {
-		return wmtrace_started == 0 || wmtrace_finished == 1
-				|| wmtrace_active > 0;
+		bool ret;
+		//cout << "Testing for thread " << omp_get_thread_num() << "\n";
+		ret = (wmtrace_started == 0 || wmtrace_finished == 1);
+		
+		if(ret) return ret;
+		//cout << "Ret 1 " << ret << " Par " << omp_in_parallel() << "\n";
+		
+		ret = (ret || wmtrace_active_threads[omp_get_thread_num()] > 0);
+		
+		//cout << "Ret 2 " << ret << " " << wmtrace_active_threads[omp_get_thread_num()] << "\n";
+		if(!ret){
+			enterActive();
+		}
+		//cout << "Entered active - now return\n";
+		return ret;
 	}
 
 	/**
 	 * Enter an active segment, increment blocking semaphore
 	 */
 	void enterActive() {
-		wmtrace_active++; /*time->start();*/
-		time->todTimer(&wmtrace_fun_stime);
+		wmtrace_active_threads[omp_get_thread_num()]++; /*time->start();*/
+		time->microTimer(&wmtrace_fun_stime[omp_get_thread_num()]);
 	}
 
 	/**
 	 * Exit an active segment, decrement blocking semaphore
 	 */
 	void exitActive() { /*time->stop(); */
-		wmtrace_active--;
-		time->todTimer(&wmtrace_fun_etime);
+	int num = omp_get_thread_num();
+		wmtrace_active_threads[num]--;
+		//time->microTimer(&wmtrace_fun_etime[num]);
+		
+		
 	}
 
 	/**
@@ -194,7 +214,8 @@ public:
 	 * @return The difference between the memory function calls.
 	 */
 	float getTimeDelta() {
-		return (float) (wmtrace_fun_stime - wmtrace_fun_etime);
+		//cout << "Time " << wmtrace_fun_stime[omp_get_thread_num()] << " " << wmtrace_app_stime << "\n";
+		return (float) (wmtrace_fun_stime[omp_get_thread_num()]);
 	}
 
 

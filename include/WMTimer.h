@@ -15,8 +15,9 @@ private:
 	struct timeval old_t;
 
 	timespec time1;
-
-	double start_time;
+	
+	long start_time_s;
+	long start_time_us;
 
 public:
 	/**
@@ -40,7 +41,7 @@ public:
 	 * Time of day timer returns time as a float since program started.
 	 * @param[out] et Pointer to float where the result should be stored.
 	 */
-	void micoTimer(float *tm);
+	void microTimer(double *tm);
 
 	/**
 	 * A function to calculate the elapsed time since the program started, as a double.

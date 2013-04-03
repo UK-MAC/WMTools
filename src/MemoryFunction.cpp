@@ -20,6 +20,7 @@ extern __typeof (free) __libc_free;
 }
 
 
+
 int init_wmtrace(int parallel_mode){
 	
 	WMT = new WMTrace();
@@ -60,6 +61,10 @@ int init_wmtrace(int parallel_mode){
 	/* Barrier to ensure same start time */
 	MPI_Barrier (MPI_COMM_WORLD);
 	
+#ifdef WMDEBUG
+	if(rank == 0) cout << "WMTrace started in verbose debugging mode\n";
+#endif
+	
 	WMT->startTracing();
 	
 	return 0;
@@ -77,7 +82,6 @@ int init_wmtrace(int parallel_mode){
  * @return MPI_Error of function
  */
 int MPI_Init(int *argc, char ***argv) {
-
 	int ret = PMPI_Init(argc, argv);
 	
 	init_wmtrace(MPI_THREAD_SINGLE);
@@ -111,7 +115,10 @@ int MPI_Init_thread(int *argc, char ***argv, int required, int *provided) {
  */
 int MPI_Finalize() {
 	
-	if(WMT == NULL) return PMPI_Finalize();
+	if(WMT == NULL) {
+		cout << "WMT was null - unable to trace\n";
+		return PMPI_Finalize();
+	}
 
 	WMT->finishTracing();
 
@@ -174,19 +181,27 @@ int MPI_Finalize() {
  * @return The pointer to the allocated memory
  */
 void *malloc(size_t size) {
+	
 	if (WMT == NULL || WMT->testActive())
 		return __libc_malloc(size);
-	WMT->enterActive();
-
+	
+#ifdef WMDEBUG
+	cout << "Malloc enter Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
+	void * ret;
+	
+	//WMT->enterActive();
 	WMT->incrementMallocCounter();
 
 	//void * ret = __libc_malloc(size);
-
-	void * ret = WMT->traceMalloc((long) size);
-
+	
+	ret = WMT->traceMalloc((long) size);
+	
 	//WMTrace_active--;
 	WMT->exitActive();
-
+#ifdef WMDEBUG
+	cout << "Malloc exit Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
 	return ret;
 }
 /**
@@ -199,16 +214,23 @@ void *malloc(size_t size) {
 void *calloc(size_t size, size_t elements) {
 	if (WMT == NULL || WMT->testActive())
 		return __libc_calloc(size, elements);
-	WMT->enterActive();
+	void * ret;
+#ifdef WMDEBUG
+	cout << "Calloc enter Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
+	//WMT->enterActive();
 
 	WMT->incrementCallocCounter();
 
 	//void * ret = __libc_calloc(size, elements);
-
-	void * ret = WMT->traceCalloc((long) size, (long) elements);
-
+	
+	ret = WMT->traceCalloc((long) size, (long) elements);
+	
 	WMT->exitActive();
-
+	
+#ifdef WMDEBUG
+	cout << "Calloc exit Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
 	return ret;
 }
 
@@ -222,16 +244,23 @@ void *calloc(size_t size, size_t elements) {
 void *realloc(void *ptr, size_t size) {
 	if (WMT == NULL || WMT->testActive())
 		return __libc_realloc(ptr, size);
-	WMT->enterActive();
-
+	void * ret;
+#ifdef WMDEBUG
+	cout << "Realloc enter Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
+	
+	//WMT->enterActive();
 	WMT->incrementReallocCounter();
 
 	//void * ret = __libc_realloc(ptr, size);
-
-	void * ret = WMT->traceRealloc(ptr, (long) size);
-
+	
+	ret = WMT->traceRealloc(ptr, (long) size);
+	
+	
 	WMT->exitActive();
-
+#ifdef WMDEBUG
+	cout << "Realloc exit Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
 	return ret;
 }
 
@@ -243,12 +272,19 @@ void *realloc(void *ptr, size_t size) {
 void free(void *ptr) {
 	if (WMT == NULL || WMT->testActive())
 		return __libc_free(ptr);
-	WMT->enterActive();
+#ifdef WMDEBUG
+	cout << "Free enter Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
+	//WMT->enterActive();
 
 	WMT->incrementFreeCounter();
+	
 	WMT->traceFree(ptr);
-
+	
+	
 	WMT->exitActive();
-
+#ifdef WMDEBUG
+	cout << "Free exit Rank: " << WMT->getRank() << " Thread: " << omp_get_thread_num() << "\n";
+#endif
 	//return __libc_free(ptr);
 }

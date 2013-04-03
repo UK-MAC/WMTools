@@ -6,12 +6,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <omp.h>
 
 extern "C" {
 	void *malloc(size_t size);
 	void *calloc(size_t size, size_t elements);
 	void *realloc(void *ptr, size_t size);
 	void free(void *ptrOld);
+	
 
 }
 
