@@ -30,7 +30,7 @@ TraceReader::TraceReader(string filename, bool consumptionGraph,
 	stack_map = new StackProcessingMap();
 
 	/* Run data is only populated later, so keep as NULL for now */
-	runData = NULL;
+	//runData = NULL;
 
 	read();
 
@@ -40,13 +40,18 @@ TraceReader::TraceReader(string filename, bool consumptionGraph,
 
 TraceReader::~TraceReader() {
 	/* Destroy the object pointers */
-	delete zlib_decomp;
+	if(zlib_decomp){ 
+		delete zlib_decomp;
+	}
 	delete frame_data;
 	delete hwm_tracker;
 	delete f_map;
 	delete stack_map;
-	if (runData != NULL)
-		delete runData;
+	//if (runData){
+	//	cerr << "Trace reader deconstructor7\n";
+	//	delete runData;
+	//	cerr << "Trace reader deconstructor8\n";
+	//}
 
 }
 
@@ -71,7 +76,6 @@ void TraceReader::read() {
 		} else {
 			flag = frame_data->FINISHFLAG;
 		}
-
 	} while (flag != frame_data->FINISHFLAG && !zlib_decomp->eof());
 
 
@@ -126,7 +130,7 @@ long TraceReader::processRealloc() {
 	zlib_decomp->request(&size, sizeof(long));
 
 	/* Collect old malloc object, if it existed */
-	MallocObj *mal = hwm_tracker->getAllocation(address_old);
+	MallocObj* mal = hwm_tracker->getAllocation(address_old);
 
 	/* If object didnt exist, then act as malloc - otherwise free then malloc */
 	if (mal == NULL) {
@@ -317,7 +321,7 @@ void TraceReader::processCores() {
 	hwm_tracker->setRank(rank);
 
 	/* Make new RunData object with this information */
-	runData = new RunData(rank, comm, name, name_len);
+	runData.setData(rank, comm, string(name), name_len);
 
 
 }

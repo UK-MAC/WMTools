@@ -7,7 +7,7 @@
 
 #include "../include/WMHeatMap.h"
 
-WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples) {
+WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples, bool nosilo) {
 	this->samples = samples;
 	this->input_folder = inputFolder;
 	this->output_file = outputFile;
@@ -59,22 +59,22 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples) {
 	char node_names[count][200];
 
 	if (rank == 0)
-		cout << "Extracting HWM and Max Time\n";
+		cerr << "Extracting HWM and Max Time\n";
 
 	/* Loop over individuals ranks, generating the trace reader to extract information from */
 	for (i = start[rank]; i < end[rank]; i++) {
 		string fname = WMUtils::stichFileName(inputFolder, i);
 
-		TraceReader *trx = new TraceReader(fname);
-		if (trx->getFinishTime() > max_time)
-			max_time = trx->getFinishTime();
-		if (trx->getHWMMemory() > max_HWM)
-			max_HWM = trx->getHWMMemory();
+		TraceReader trx(fname);
+		if (trx.getFinishTime() > max_time)
+			max_time = trx.getFinishTime();
+		if (trx.getHWMMemory() > max_HWM)
+			max_HWM = trx.getHWMMemory();
 
 		//allocateRank(trx);
 		sprintf(node_names[i], "%s",
-				trx->getRunData()->getProcNameString().c_str());
-		delete trx;
+			trx.getRunDataProcessName());
+		//delete trx;
 
 	}
 
@@ -88,11 +88,11 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples) {
 			MPI_COMM_WORLD);
 
 	if (rank == 0)
-		cout << "  Finished! HWM of " << global_maxHWM << "(B) Max time "
+		cerr << "  Finished! HWM of " << global_maxHWM << "(B) Max time "
 				<< global_maxTime << "(S).\n";
 
 	if (rank == 0)
-		cout << "Broadcasting node assignment.\n";
+		cerr << "Broadcasting node assignment.\n";
 
 	/* Broadcast the node name list - A more elegant way to do this should exist */
 	for (i = 0; i < count; i++) {
@@ -106,32 +106,34 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples) {
 	}
 
 	/* Establish Data block size and object */
-	long **datapoints = new long*[comm];
+	long **datapoints = new long*[count];
 
 	if (rank == 0)
-		cout << "  Finished!\nCollecting data points.\n";
+		cerr << "  Finished!\nCollecting data points.\n";
 
 	/* Extract Data Points */
 	for (i = start[rank]; i < end[rank]; i++) {
 		string fname = WMUtils::stichFileName(inputFolder, i);
-
+		cout << "Trying to open " << fname << "\n";
 		/* Extract then store the data points */
-		TraceReader *trx = new TraceReader(fname, true, false, false, true);
-		datapoints[i] = trx->getHeatMapSamples(samples, global_maxTime);
-		delete trx;
+		TraceReader trx(fname, true, false, false, true);
+		datapoints[i] = trx.getHeatMapSamples(samples, global_maxTime);
+		//delete trx;
 
 	}
 
 	if (rank == 0)
-		cout << "  Finished!\nMaking Silo file structure.\n";
+		cerr << "  Finished!\nMaking Silo file structure.\n";
 
 	double increment = global_maxTime / (samples - 1);
 	/* Make Silo folder / file structure */
-	SiloHMWriter *silo = new SiloHMWriter(samples, outputFile, machine_names,
+	SiloHMWriter silo;
+	
+	if(!nosilo) silo.setSiloData(samples, outputFile, machine_names,
 			rank_allocation, increment);
 
 	if (rank == 0)
-		cout << "  Finished!\nDistributing data points.\n";
+		cerr << "  Finished!\nDistributing data points.\n";
 
 	/* Split up into machines */
 	int machine_count = machine_names.size();
@@ -167,15 +169,99 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples) {
 
 	/* Each machine owner should now have all the data for their machine - Just need to write it out*/
 	if (rank == 0)
-		cout << "  Finished!\nWriting Silo Files.\n";
+		cerr << "  Finished!\nWriting Silo Files.\n";
 	for (i = 0; i < machine_count; i++) {
 		/* Only process if I own this machine */
 		if (machine_owner[i] == rank) {
-			silo->addFullMachine(i, datapoints, samples, global_maxHWM);
-
+			if(!nosilo) silo.addFullMachine(i, datapoints, samples, global_maxHWM);
 		}
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
+	
+	if(nosilo){
+		/* Find node level HWM */
+		
+		int sample_it;
+		int proc_it;
+		int machine_it;
+		
+		double node_max[machine_count];
+		double node_time[machine_count];
+		
+		for(i=0;i<machine_count;i++){
+			node_max[i] =0.0;
+			node_time[i] =0.0;
+		}
+		
+		for (machine_it = 0; machine_it < machine_count; machine_it++) {
+				
+			long node_hwm = 0;
+			int node_hwm_time = 0;
+			int hwm_machine = 0;
+			int m_owner = machine_owner[machine_it];
+			
+			/* Do I own this machine? */
+			if(m_owner == rank){
+				/* Loop over every sample */
+				for(sample_it=0; sample_it < samples; sample_it++){
+					long node_sum = 0;
+					/* Loop over all ranks, then determine if you own them */
+					for(proc_it=0; proc_it<count; proc_it++){
+						int machine_id = machine_map[proc_it];
+						if(machine_id == machine_it){
+							node_sum += datapoints[proc_it][sample_it];
+							//cerr << "New sum " << node_sum << "\n";
+						}
+					}
+					/* Is the sum the biggest so far? If so store it. */
+					if(node_sum > node_hwm){
+						node_hwm = node_sum;
+						node_hwm_time = sample_it;
+						//cerr << "Total " << node_sum << "\n";
+					}
+				}
+				
+				node_max[machine_it] = node_hwm/(1024*1024);
+				node_time[machine_it] = node_hwm_time*increment;
+				
+		
+				
+			}
+			
+			MPI_Allreduce(MPI_IN_PLACE, node_max, machine_count, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+			MPI_Allreduce(MPI_IN_PLACE, node_time, machine_count, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+			
+			if(rank == 0){
+			cout << "\n\n==== Node leve HWM ====\n\n";
+				double global_node_max = node_max[0];
+				int global_node = 0;
+				
+				for(i=0; i<machine_count; i++){
+					if(node_max[i] > global_node_max){
+						global_node_max = node_max[i];
+						global_node = i;
+					}
+					
+				cout << "Node " 
+					<< node_names[rank_allocation[i][0]]
+					<< " of " << node_max[i] 
+					<< " (MB) @ time " 
+					<< node_time[i] 
+					<< " (s)\n";
+				}
+				
+				cout << "\n\nMax HWM for node " 
+				<< node_names[rank_allocation[global_node][0]]
+				<< " of " << node_max[global_node] 
+				<< " (MB) @ time " 
+				<< node_time[global_node] 
+				<< " (s)\n";
+				
+			}
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+		}
+	}
 
 	if (rank == 0)
 		cout << "  Finished!\nAll done. Exiting.\n";
@@ -211,6 +297,7 @@ int main(int argc, char *argv[]) {
 	MPI_Comm_size(MPI_COMM_WORLD, &comm);
 
 	int samples = 1000;
+	bool nosilo = false;
 	string output("WMHeatMap.hd5f");
 	string input("WMTrace");
 
@@ -220,8 +307,9 @@ int main(int argc, char *argv[]) {
 			cout << "WMHeatMap [Options] <WMTrace Output Dir>\n\n";
 			cout << "Options:\n";
 			cout << "'-s=n' Number of samples for the output - Default "
-					<< samples << "\n";
+			<< samples << "\n";
 			cout << "'-o=n' Output filename - Default " << output << "\n";
+			cout << "'-nosilo' Produce proc mappings but no silo output, used to get deeper HWM data.\n";
 		}
 		return 1;
 	}
@@ -236,10 +324,12 @@ int main(int argc, char *argv[]) {
 			char name[200];
 			sscanf(argv[i], "-o=%s", name);
 			output.assign(name);
+		} else if (strncmp(argv[i], "-nosilo", 7) == 0) {
+			nosilo = true;
 		}
 	}
 
-	WMHeatMap *map = new WMHeatMap(input, output, samples);
-	delete map;
+	WMHeatMap mapWMHeatMap(input, output, samples, nosilo);
+	//delete map;
 	MPI_Finalize();
 }

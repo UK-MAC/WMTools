@@ -95,6 +95,9 @@ private:
 	char **filenames_mesh;
 	char **filenames_value;
 	char **filenames_label;
+	
+	/* Is this an active object */
+	bool populated;
 
 	/**
 	 * Make the unique folder to store the silo dumps in.
@@ -122,6 +125,8 @@ private:
 	void calculateMeshOffset(int machine, int *x, int *y);
 
 public:
+	SiloHMWriter(){populated = false;};
+	
 	/**
 	 * Constructor for the SiloHMWriter object. Sets up the Silo data file.
 	 *
@@ -138,6 +143,10 @@ public:
 	 * Deconstructor for the SiloHWM object to free the memory allocated within.
 	 */
 	~SiloHMWriter();
+	
+	
+	void setSiloData(int samples, string outfile, vector<string>& nodeName,
+		     vector<vector<int> >& rankAssignment, double timeInterval);
 
 	/**
 	 * This function is to add the full sample data for every rank in a machine to their respective files.

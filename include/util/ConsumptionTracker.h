@@ -104,7 +104,7 @@ public:
 	 * @param pointer The memory address of the allocated object.
 	 * @return A pointer to the allocation object.
 	 */
-	MallocObj *getAllocation(long pointer);
+	MallocObj* getAllocation(long pointer);
 
 	/**
 	 * Return the memory HWM of the trace (so far) in bytes.

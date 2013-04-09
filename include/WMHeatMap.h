@@ -76,8 +76,9 @@ public:
 	 * @param inputFolder The name of the folder to look for files in
 	 * @param outputFile The output folder to generate files to
 	 * @param samples The number of samples to generate
+	 * @param nosilo Generate data but with no silo output
 	 */
-	WMHeatMap(string inputFolder, string outputFile, int samples);
+	WMHeatMap(string inputFolder, string outputFile, int samples, bool nosilo);
 
 };
 

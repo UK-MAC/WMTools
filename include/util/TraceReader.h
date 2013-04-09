@@ -38,13 +38,13 @@ using namespace std;
  */
 class TraceReader {
 private:
-	ZlibDecompress *zlib_decomp;
-	FrameData *frame_data;
-	ConsumptionHWMTracker *hwm_tracker;
-	FunctionMap * f_map;
-	StackProcessingMap * stack_map;
+	ZlibDecompress* zlib_decomp;
+	FrameData* frame_data;
+	ConsumptionHWMTracker* hwm_tracker;
+	FunctionMap* f_map;
+	StackProcessingMap* stack_map;
 
-	RunData *runData;
+	RunData runData;
 
 	/* Are we in simple or complex mode */
 	bool complex;
@@ -260,7 +260,7 @@ public:
 	 *
 	 * @return The StackProcessingMap object.
 	 */
-	StackProcessingMap *&getCallStacks() {
+	StackProcessingMap*& getCallStacks() {
 		return stack_map;
 	}
 
@@ -270,9 +270,16 @@ public:
 	 *
 	 * @return The run data for this trace.
 	 */
-	RunData *&getRunData() {
-		return runData;
+	RunData* getRunData() {
+		cerr << "Warning: Using runData from a pointer (" << &runData << ")\n";
+		return &runData;
 	}
+	
+	
+	const char* getRunDataProcessName(){
+		return runData.getProcName();
+	}
+	
 
 	/**
 	 * A function to fetch the finish time of this trace.

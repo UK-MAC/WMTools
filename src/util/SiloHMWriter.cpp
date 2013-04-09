@@ -6,11 +6,21 @@
  */
 
 #include "../../include/util/SiloHMWriter.h"
-
 SiloHMWriter::SiloHMWriter(int samples, string outfile,
+			   vector<string>& nodeName, vector<vector<int> >& rankAssignment,
+			   double timeInterval) {
+	setSiloData(samples, outfile, nodeName, rankAssignment, timeInterval);
+	
+	
+}
+
+
+void SiloHMWriter::setSiloData(int samples, string outfile,
 		vector<string>& nodeName, vector<vector<int> >& rankAssignment,
 		double timeInterval) {
 
+	populated = true;
+	
 	/* Set up MPI variables */
 	int rank = WMUtils::getMPIRank();
 	int comm = WMUtils::getMPICommSize();
@@ -297,6 +307,8 @@ void SiloHMWriter::finish() {
 }
 
 SiloHMWriter::~SiloHMWriter(){
+	
+	if(!populated) return;
 	int i;
 	/* Free the data */
 	for(i=0; i<machines; i++){

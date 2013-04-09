@@ -19,7 +19,7 @@ class RunData {
 private:
 	int rank;
 	int comm_size;
-	char *proc_name;
+	string proc_name;
 	int name_len;
 public:
 	/**
@@ -30,10 +30,25 @@ public:
 	 * @param proc_name The name of the processor.
 	 * @param name_len The length of the name string.
 	 */
-	RunData(int rank, int comm_size, char * proc_name, int name_len) {
+	RunData(int rank, int comm_size, const string& proc_name, int name_len) {
 		this->rank = rank;
 		this->comm_size = comm_size;
 		this->proc_name = proc_name;
+		//this->proc_name = proc_name;
+		this->name_len = name_len;
+	}
+	
+	RunData() {
+	}
+	
+	~RunData(){
+	}
+	
+	void setData(int rank, int comm_size, const string& proc_name, int name_len) {
+		this->rank = rank;
+		this->comm_size = comm_size;
+		this->proc_name = proc_name;
+		//this->proc_name = proc_name;
 		this->name_len = name_len;
 	}
 
@@ -60,8 +75,8 @@ public:
 	 *
 	 * @return Proc name.
 	 */
-	char* getProcName() const {
-		return proc_name;
+	const char* getProcName() const {
+		return proc_name.c_str();
 	}
 
 	/**
@@ -69,9 +84,9 @@ public:
 	 *
 	 * @return The Proc name as a string.
 	 */
-	string getProcNameString() const {
-		string s(proc_name);
-		return s;
+	const string getProcNameString() const {
+		//string s(proc_name);
+		return proc_name;
 	}
 
 	/**

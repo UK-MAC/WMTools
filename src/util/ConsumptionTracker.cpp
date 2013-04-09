@@ -20,8 +20,16 @@ ConsumptionHWMTracker::ConsumptionHWMTracker(string filename,
 }
 
 ConsumptionHWMTracker::~ConsumptionHWMTracker() {
-	delete consumption;
+	//allocation_map_it = allocation_map.begin();
+	//long total_count = 0;
+	//while (allocation_map_it != allocation_map.end()) {
+		//delete allocation_map_it->second;
+		//allocation_map_it->second = 0;
+		
+	//}
 	allocation_map.clear();
+	delete consumption;
+	//allocation_map.clear();
 }
 
 long ConsumptionHWMTracker::addAllocation(MallocObj& malloc) {
@@ -29,7 +37,7 @@ long ConsumptionHWMTracker::addAllocation(MallocObj& malloc) {
 	curr_memory += malloc.getSize();
 	curr_time = malloc.getTime();
 
-	allocation_map.insert(pair<long, MallocObj>(malloc.getPointer(), malloc));
+	allocation_map.insert(pair<long, MallocObj&>(malloc.getPointer(), malloc));
 
 	/* If we are graphing then add point to consumption graph */
 	if (graph)
@@ -48,13 +56,15 @@ long ConsumptionHWMTracker::addFree(FreeObj& free) {
 	curr_time = free.getTime();
 
 	/* Try to fetch corresponding malloc, to know free size */
-	MallocObj * malloc = getAllocation(free.getPointer());
-	if (malloc != NULL) {
-
+	MallocObj* malloc = getAllocation(free.getPointer());
+	if(malloc != NULL){
+	
 		/* Decrease mem by corresponding values */
 		curr_memory -= malloc->getSize();
+		
+		allocation_map_it = allocation_map.find(free.getPointer());
 		allocation_map.erase(free.getPointer());
-
+		//delete malloc;
 		/* If we are graphing then add point to consumption graph */
 		if (graph)
 			consumption->addAllocation(curr_time, curr_memory);
@@ -63,13 +73,15 @@ long ConsumptionHWMTracker::addFree(FreeObj& free) {
 	return currID;
 }
 
-MallocObj *ConsumptionHWMTracker::getAllocation(long pointer) {
-	MallocObj * res;
+MallocObj* ConsumptionHWMTracker::getAllocation(long pointer) {
+	//MallocObj * res;
 	allocation_map_it = allocation_map.find(pointer);
-	if (allocation_map_it == allocation_map.end())
+	if (allocation_map_it == allocation_map.end()){
+		//MallocObj tmp(-1, 0, 0, -1);
 		return NULL;
+	}
 
-	return &allocation_map_it->second;
+	return &(allocation_map_it->second);
 }
 
 void ConsumptionHWMTracker::finish() {
@@ -101,7 +113,7 @@ set<FunctionSiteAllocation *, FunctionSiteAllocation::comparator> ConsumptionHWM
 		FunctionSiteAllocation * fsa = new FunctionSiteAllocation(
 				allocation_map_it->second.getStackID(),
 				allocation_map_it->second.getSize());
-		total_count += allocation_map_it->second.getSize();
+				total_count += allocation_map_it->second.getSize();
 		/* Try to inser the new object - but test to see if it clashed with an existing stack id value. */
 		pair<
 				set<FunctionSiteAllocation *, FunctionSiteAllocation::comparator>::iterator,

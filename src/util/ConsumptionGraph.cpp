@@ -121,24 +121,29 @@ void ConsumptionGraph::dumpGraphToFile() {
 
 }
 
-long * ConsumptionGraph::getHeatMapSamples(int samples, double time) {
+long * ConsumptionGraph::getHeatMapSamples(int sampleCount, double time) {
 
-	long * points = new long[samples];
+	long * points = new long[sampleCount];
+	int i;
+	for(i=0; i<sampleCount; i++){
+		points[i]=0;
+	}
 
 	/* Ensure we were collecting data for samples not for graph */
 	if (!samples)
 		return points;
 
-	int i;
-	double increment = time / (samples - 1);
+	
+	double increment = time / (sampleCount - 1);
 	long prevmem = consumption.front().second;
-	for (i = 1; i < samples; i++) {
+	for (i = 1; i < sampleCount; i++) {
 		double timeStep = increment * i;
 		while (!consumption.empty() && consumption.front().first < timeStep) {
-			consumption.pop_front();
 			prevmem = consumption.front().second;
+			consumption.pop_front();
 		}
 		points[i] = prevmem;
+		//cerr << "Point " << i << " value " << prevmem << "\n";
 	}
 	return points;
 }
