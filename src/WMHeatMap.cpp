@@ -227,40 +227,40 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples, bool no
 		
 				
 			}
+		}
+		
+		MPI_Allreduce(MPI_IN_PLACE, node_max, machine_count, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		MPI_Allreduce(MPI_IN_PLACE, node_time, machine_count, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+		
+		if(rank == 0){
+		cout << "\n\n==== Node leve HWM ====\n\n";
+			double global_node_max = node_max[0];
+			int global_node = 0;
 			
-			MPI_Allreduce(MPI_IN_PLACE, node_max, machine_count, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-			MPI_Allreduce(MPI_IN_PLACE, node_time, machine_count, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-			
-			if(rank == 0){
-			cout << "\n\n==== Node leve HWM ====\n\n";
-				double global_node_max = node_max[0];
-				int global_node = 0;
-				
-				for(i=0; i<machine_count; i++){
-					if(node_max[i] > global_node_max){
-						global_node_max = node_max[i];
-						global_node = i;
-					}
-					
-				cout << "Node " 
-					<< node_names[rank_allocation[i][0]]
-					<< " of " << node_max[i] 
-					<< " (MB) @ time " 
-					<< node_time[i] 
-					<< " (s)\n";
+			for(i=0; i<machine_count; i++){
+				if(node_max[i] > global_node_max){
+					global_node_max = node_max[i];
+					global_node = i;
 				}
 				
-				cout << "\n\nMax HWM for node " 
-				<< node_names[rank_allocation[global_node][0]]
-				<< " of " << node_max[global_node] 
+			cout << "Node " 
+				<< node_names[rank_allocation[i][0]]
+				<< " of " << node_max[i] 
 				<< " (MB) @ time " 
-				<< node_time[global_node] 
+				<< node_time[i] 
 				<< " (s)\n";
-				
 			}
 			
-			MPI_Barrier(MPI_COMM_WORLD);
+			cout << "\n\nMax HWM for node " 
+			<< node_names[rank_allocation[global_node][0]]
+			<< " of " << node_max[global_node] 
+			<< " (MB) @ time " 
+			<< node_time[global_node] 
+			<< " (s)\n\n";
+			
 		}
+		
+		
 	}
 
 	if (rank == 0)
