@@ -1,5 +1,5 @@
 #include "../include/util/ElfData.h"
-#include "../include/util/util.h"
+#include "../include/util/Util.h"
 
 #include <iostream>
 #include <vector>
@@ -12,13 +12,13 @@ int main(){
 
 	long staticmem = elf->getElfMem();
 
-	void *array;
+	char* array;
 	long arraySize;
 	int count = elf->getFunctions(&array, &arraySize);
 
 	cout << "Static Memory: " << staticmem << " (B)\n\nFunctions(" << arraySize <<") " << count << ":\n";
 
-	void * tmpArr = array;
+	char* tmpArr = array;
 	int i;
 	for(i = 0; i < count; i++){
 	//while(true){
@@ -34,7 +34,7 @@ int main(){
 		memcpy(str, tmpArr, sizeof(char)*size);
 		tmpArr=(void *)tmpArr+sizeof(char)*size;
 		cout << " Name: " << str << " ";
-		string demag = cppDemangle(string(str));
+		string demag = WMUtils::cppDemangle(string(str));
 		cout << "Demangled: " << demag << "\n";
 
 	}
