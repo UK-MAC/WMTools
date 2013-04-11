@@ -39,7 +39,7 @@ WMHeatMap_LIBS=$(WMAnalysisCPP_LIBS) $(SILO_LIB)
 .PHONY: clean cleaner WMAnalysisSerialBuild WMAnalysisSerial SERIALENV .FORCE
 
 
-all: WMTrace WMAnalysis WMHeatMap
+all: WMTrace WMAnalysis WMHeatMap WMComparisons
 
 .cpp.o: 
 	$(CXX) $(CXXFLAGS) $<  -o $@
@@ -76,6 +76,9 @@ SERIALENV::
 
 WMAnalysisSerial: SERIALENV $(WMAnalysisSerial_OBJS) $(WMTOOLS_BIN_DIR)
 	$(CXX) $(BLFLAGS) $(WMAnalysisSerial_OBJS) -o $(WMTOOLS_BIN_DIR)$@ $(WMAnalysisCPP_LIBS)
+	
+WMComparisons: $(Reader_OBJS) $(WMTOOLS_BIN_DIR) WMComparisons.o
+	$(CXX) $(BLFLAGS) $(Reader_OBJS) WMComparisons.o -o $(WMTOOLS_BIN_DIR)$@ $(WMAnalysisCPP_LIBS)
 	
 WMHeatMap_OBJS=$(UTIL_DIR)/SiloHMWriter.o $(Reader_OBJS) WMHeatMap.o
 

@@ -22,6 +22,7 @@
 
 using namespace std;
 
+
 /**
  * Class to read trace files.
  * Operates on two mode:
@@ -299,7 +300,7 @@ public:
 	 * @param time The maximum trace runtime, to calculate sample points.
 	 * @return The vector of memory consumption at each point.
 	 */
-	long *getHeatMapSamples(int samples, double time) {
+	long* getHeatMapSamples(int samples, double time) {
 		return hwm_tracker->getHeatMapSamples(samples, time);
 	}
 
@@ -310,6 +311,39 @@ public:
 	long getStaticMem() {
 		return static_mem;
 	}
+
+
+	/**
+	 * Generate a vector of memory consumption (b) at each interval point.
+	 * @param filename The name of the file to extract the points from
+	 * @param sampleCount The number of sampling points
+	 * @param maxTime The time to iterate up to
+	 * @return A vector of memory at the given interval sections
+	 */
+	static long* getTraceSamples(string filename, long sampleCount, double maxTime);
+
+	/**
+	 * Generate a vector of memory consumption (b) at each interval point.
+	 * With the max time generated from the actual trace.
+	 * @param filename The name of the file to extract the points from
+	 * @param sampleCount The number of sampling points
+	 * @return A vector of memory at the given interval sections
+	 */
+	static long* getTraceSamples(string filename, long sampleCount);
+
+	/**
+	 * Iterate through the owned traces to extract key run information.
+	 * @param traces A list of the trace files names in this job
+	 * @param traceCount The number of trace files
+	 * @param startRank The start of this ranks range
+	 * @param stopRank The end of this ranks range
+	 * @param HWM[out] The output array for each process HWM
+	 * @param time[out] The output array for each process end time
+	 * @param names[out] The output array for each process node name
+	 * @return The success of this function
+	 */
+	static int extractTraceStats(const string* traces, const int traceCount, const int startRank, const int stopRank, long** HWM, double** time, string** names);
+
 };
 
 #endif

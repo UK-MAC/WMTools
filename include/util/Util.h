@@ -14,10 +14,12 @@
 #include <cxxabi.h>
 #include <vector>
 #include <stack>
+#include <list>
 #include <math.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 
 using namespace std;
 
@@ -35,6 +37,7 @@ using namespace std;
 #define DCCHUNK 1048576
 /* Define the timer frame frequency */
 #define TIMERFREQUENCY 100
+
 
 /**
  * WMUtils is a collection of static utility functions.
@@ -179,6 +182,74 @@ public:
 	 */
 	static int countRunSize(string base);
 
+
+
+	/**
+	 * Generate an array of strings for each process in the job.
+	 * Assumes a unique folder for each job.
+	 * @param folder The base folder for the job
+	 * @return The array of file names
+	 */
+	static string* getJobFileNames(const string& folder);
+
+	/**
+	 * Generate an even decomposition (1D).
+	 * @param myRanks How many ranks are we decomposing onto.
+	 * @param theirRanks How many ranks are we decomposing
+	 * @param[out] start The start index of the ranks
+	 * @param[out] end The end index of the ranks
+	 * @return The success of the function.
+	 */
+	static int decompositionConstructor(const int myRanks, const int theirRanks, int** start, int** end);
+
+	/**
+	 * Generate a reverse mapping from theirRank to myRank ranks.
+	 * @param myRanks How many ranks are we decomposing onto.
+	 * @param theirRanks How many ranks are we decomposing
+	 * @param start The start index of the ranks
+	 * @param end The end index of the ranks
+	 * @return The mapping from theirRank ranks to myRank ranks
+	 */
+	static int* reverseRankMapping(const int myRanks, const int theirRanks, int* start, int* end);
+
+
+	/**
+	 * Find the index of the max memory trace
+	 * @param HWM The list of ranks HWM
+	 * @param traceCount The number of traces
+	 * @return The index of the rank with the highest HWM
+	 */
+	static int getMaxMemIndex(const long* HWM, const int traceCount);
+
+	/**
+	 * Find the index of the max time trace
+	 * @param times The list of trace runtimes
+	 * @param traceCount The number of traces
+	 * @return The index of the rank with the longest runtime
+	 */
+	static int getMaxTimeIndex(const double* times, const int traceCount);
+
+	/**
+	 * Take a collection of partial arrays of rank to nodename allocations, full populate it and calculate unique vales.
+	 * @param names The array of partially populated node names
+	 * @param traceCount The number of trace files
+	 * @param comm The current MPI workgroup size
+	 * @param start The start index of the ranks
+	 * @param end The end index of the ranks
+	 * @param uniqueNodes A list of unique node names
+	 * @param nodeNameMap A mapping from rankid to unique node name id
+	 * @return The number of unique node names
+	 */
+	static int getUniqueJobNodes(string* names, const int traceCount, const int comm, const int* start, const int* stop, string** uniqueNodes, int** nodeNameMap);
+
+	/**
+	 * A function to perform an addition between two arrays
+	 * @param size The size of the arrays / elements to sum
+	 * @param base The original array to store the results in
+	 * @param input The data array whose values to add
+	 * @return The success of the function
+	 */
+	static int reductionSum(const int size, long* base, const long* input);
 
 
 };

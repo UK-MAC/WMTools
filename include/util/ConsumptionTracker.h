@@ -167,7 +167,7 @@ public:
 	 * @param time The maximum trace runtime, to calculate sample points.
 	 * @return The vector of memory consumption at each point.
 	 */
-	long *getHeatMapSamples(int samples, double time) {
+	long* getHeatMapSamples(int samples, double time) {
 		return consumption->getHeatMapSamples(samples, time);
 	}
 

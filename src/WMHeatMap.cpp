@@ -22,34 +22,16 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples, bool no
 	/* Resize Machine map to count size */
 	machine_map = new int[count];
 
+	string* traceFilenames = WMUtils::getJobFileNames(inputFolder);
+
 	/* Perform rank decomposition */
-	int start[comm], end[comm];
-	memset(start, 0, comm * sizeof(int));
-	memset(end, 0, comm * sizeof(int));
+	int* start;
+	int* end;
+	WMUtils::decompositionConstructor(comm, count, &start, &end);
 
-	int div = (int) (floor(count / comm));
-	int rem = (int) (count % comm);
-
-	int i;
-	start[0] = 0;
-	end[comm - 1] = count;
-	for (i = 1; i < comm; i++) {
-		end[i - 1] = start[i - 1] + div;
-		if ((i - 1) < rem)
-			end[i - 1]++;
-		start[i] = end[i - 1];
-	}
 
 	/* Map rank of trace to rank of processing job - makes for easier lookup*/
-	int rankMap[count];
-	for (i = 0; i < count; i++) {
-		int k = 0;
-		/* Establish Owner */
-		for (k = 0; k < comm; k++) {
-			if (i >= start[k] && i < end[k])
-				rankMap[i] = k;
-		}
-	}
+	int* rankMap = WMUtils::reverseRankMapping(comm, count, start, end);
 
 	/* Extract HWM and Max time */
 	long max_HWM = 0;
@@ -60,12 +42,11 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples, bool no
 
 	if (rank == 0)
 		cerr << "Extracting HWM and Max Time\n";
-
+	int i;
 	/* Loop over individuals ranks, generating the trace reader to extract information from */
 	for (i = start[rank]; i < end[rank]; i++) {
-		string fname = WMUtils::stichFileName(inputFolder, i);
 
-		TraceReader trx(fname);
+		TraceReader trx(traceFilenames[i]);
 		if (trx.getFinishTime() > max_time)
 			max_time = trx.getFinishTime();
 		if (trx.getHWMMemory() > max_HWM)
@@ -114,11 +95,7 @@ WMHeatMap::WMHeatMap(string inputFolder, string outputFile, int samples, bool no
 	/* Extract Data Points */
 	for (i = start[rank]; i < end[rank]; i++) {
 		string fname = WMUtils::stichFileName(inputFolder, i);
-		cout << "Trying to open " << fname << "\n";
-		/* Extract then store the data points */
-		TraceReader trx(fname, true, false, false, true);
-		datapoints[i] = trx.getHeatMapSamples(samples, global_maxTime);
-		//delete trx;
+		datapoints[i] = TraceReader::getTraceSamples(fname, samples, global_maxTime);
 
 	}
 

@@ -121,9 +121,9 @@ void ConsumptionGraph::dumpGraphToFile() {
 
 }
 
-long * ConsumptionGraph::getHeatMapSamples(int sampleCount, double time) {
+long* ConsumptionGraph::getHeatMapSamples(int sampleCount, double time) {
 
-	long * points = new long[sampleCount];
+	long* points = new long[sampleCount];
 	int i;
 	for(i=0; i<sampleCount; i++){
 		points[i]=0;

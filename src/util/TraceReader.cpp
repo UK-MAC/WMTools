@@ -403,3 +403,51 @@ void TraceReader::processTimer(){
 
 }
 
+
+
+
+long* TraceReader::getTraceSamples(string filename, long sampleCount, double maxTime){
+
+	/* Create a new trace reader and then extract the points */
+	TraceReader trx(filename, true, false, false, true);
+	return trx.getHeatMapSamples(sampleCount, maxTime);
+}
+
+
+long* TraceReader::getTraceSamples(string filename, long sampleCount){
+
+	/* Extract the trace finish time - then chain the call */
+	TraceReader trx(filename, true, false, false, true);
+	double maxTime = trx.getFinishTime();
+
+	return getTraceSamples(filename, sampleCount, maxTime);
+}
+
+int TraceReader::extractTraceStats(const string* traces, const int traceCount, const int startRank, const int stopRank, long** HWM, double** time, string** names){
+
+	long* allHWM = new long[traceCount];
+	double* allTimes = new double[traceCount];
+	string* allNames = new string[traceCount];
+
+	int i;
+	/* Initialise output arrays to zero */
+	for(i=0; i < traceCount; i++){
+		allHWM[i]=0;
+		allTimes[i]=0.0;
+		allNames[i]="";
+	}
+
+	for(i=startRank; i < stopRank; i++){
+		TraceReader trx(traces[i]);
+		allHWM[i] = trx.getHWMMemory();
+		allTimes[i] = trx.getFinishTime();
+		allNames[i] = trx.getRunDataProcessName();
+	}
+
+
+	*HWM = allHWM;
+	*time = allTimes;
+	*names = allNames;
+
+	return 0;
+}

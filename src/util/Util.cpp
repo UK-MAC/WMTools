@@ -217,4 +217,162 @@ int WMUtils::countRunSize(string base) {
 	return count;
 }
 
+string* WMUtils::getJobFileNames(const string& folder){
+	int jobSize = countRunSize(folder);
 
+	string* files = new string[jobSize];
+	int i;
+	for (i=0; i < jobSize; i++){
+		files[i] = stichFileName(folder, i);
+	}
+	return files;
+}
+
+int WMUtils::decompositionConstructor(const int myRanks, const int theirRanks, int** start, int** end){
+
+	int* startIndex = new int[myRanks];
+	int* endIndex = new int[myRanks];
+
+	int i;
+	/* Sanitise the data arrays first */
+	for( i=0; i < myRanks; i++){
+		startIndex[i] = 0;
+		endIndex[i] = 0;
+	}
+
+	int div = (int) (floor(theirRanks / myRanks));
+	int rem = (int) (theirRanks % myRanks);
+
+
+	startIndex[0] = 0;
+	endIndex[myRanks - 1] = theirRanks;
+	for (i = 1; i < myRanks; i++) {
+		endIndex[i - 1] = startIndex[i - 1] + div;
+		if ((i - 1) < rem)
+			endIndex[i - 1]++;
+		startIndex[i] = endIndex[i - 1];
+	}
+
+	*start = startIndex;
+	*end = endIndex;
+	return 0;
+}
+
+
+int* WMUtils::reverseRankMapping(const int myRanks, const int theirRanks, int* start, int* end){
+	int* map = new int[theirRanks];
+
+	int i;
+	for(i=0; i < myRanks; i++){
+		int j;
+		for(j=start[i]; j < end[i]; j++){
+			map[j] = i;
+		}
+	}
+
+	return map;
+}
+
+
+
+int WMUtils::getMaxMemIndex(const long* HWM, const int traceCount){
+
+	if(traceCount <= 0)
+		return -1;
+	/* Assume 0 to start with */
+	int index = 0;
+	long maxMem = HWM[0];
+	int i;
+	for(i=1; i<traceCount; i++){
+		//cerr << "Considering " << HWM[i] << " against " << maxMem << "\n";
+		if(HWM[i] > maxMem){
+			maxMem = HWM[i];
+			index=i;
+		}
+	}
+	return index;
+}
+
+int WMUtils::getMaxTimeIndex(const double* times, const int traceCount){
+	if(traceCount <= 0)
+		return -1;
+	/* Assume 0 to start with */
+	int index = 0;
+	double maxTime = times[0];
+	int i;
+	for(i=1; i<traceCount; i++){
+		if(times[i] > maxTime){
+			maxTime = times[i];
+			index=i;
+		}
+	}
+	return index;
+
+}
+
+int WMUtils::getUniqueJobNodes(string* names, const int traceCount, const int comm, const int* start, const int* stop, string** uniqueNodes, int** nodeNameMap){
+
+
+	/* First we need to merge the lists - Only MPI */
+	#ifndef NO_MPI
+		int root;
+		for(root=0; root < comm; root++){
+			int index;
+			for(index=start[root]; index<stop[root]; index++){
+				char* name = new char[100];
+				sprintf(name, "%s", names[index].c_str());
+				MPI_Bcast(name, 100, MPI_CHAR, root, MPI_COMM_WORLD);
+				names[index].assign(name);
+				delete[] name;
+			}
+		}
+	#endif
+
+	list<string> uniques;
+	int nameIndex;
+	for(nameIndex = 0; nameIndex < traceCount; nameIndex++){
+		uniques.push_back(names[nameIndex]);
+	}
+	uniques.sort();
+	uniques.unique();
+
+	int uniquesSize = uniques.size();
+	string* uniqueNodeNames = new string[uniquesSize];
+	int* mapping = new int[traceCount];
+
+	/* Convert list to string* */
+	int uniqueIndex = 0;
+	for (list<string>::iterator it=uniques.begin(); it!=uniques.end(); ++it){
+		uniqueNodeNames[uniqueIndex].assign(*it);
+		uniqueIndex++;
+	}
+
+	/* Make the mapping for each ranks node name to the unique node name position */
+	//int nameIndex;
+	for(nameIndex = 0; nameIndex < traceCount; nameIndex++){
+		uniqueIndex = 0;
+		bool found = false;
+		for (list<string>::iterator it=uniques.begin(); it!=uniques.end() && !found; ++it){
+			if(names[nameIndex].compare(*it)==0){
+				mapping[nameIndex] = uniqueIndex;
+			}
+			uniqueIndex++;
+		}
+
+	}
+
+	/* Assign the return arrays */
+	*nodeNameMap = mapping;
+	*uniqueNodes = uniqueNodeNames;
+
+	return uniquesSize;
+}
+
+
+int WMUtils::reductionSum(const int size, long* base, const long* input){
+	int i;
+	for(i=0; i<size; i++){
+		base[i] += input[i];
+	}
+	return 0;
+}

@@ -20,6 +20,9 @@ WMAnalysis :
 
 WMHeatMap : 
 	$(MAKE) -C $(SRC_DIR) WMHeatMap
+
+WMComparisons : 
+	$(MAKE) -C $(SRC_DIR) WMComparisons
 	
 clean :
 	$(MAKE) -C $(SRC_DIR) clean
