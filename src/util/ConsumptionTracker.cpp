@@ -79,7 +79,7 @@ void ConsumptionHWMTracker::finish() {
 	consumption->setLocalHwm(hwm);
 
 	if (graph && !samples)
-		consumption->dumpGraphToFile();
+		consumption->dumpGraphToFile(curr_time);
 }
 
 void ConsumptionHWMTracker::checkHWM(){

@@ -39,10 +39,13 @@ public:
 	 * @param trace_file The name of the tracefile to read process
 	 * @param graph Should we produce a consumption graph
 	 * @param functions Should we production a functional breakdown
-	 * @param allocations Shopuld we produce an allocations breakdown
+	 * @param allocations Should we produce an allocations breakdown
+	 * @param time_search Should we produce a functional breakdown at time time_val
+	 * @param time_val Time in s of the simulation at which to dump a function breakdown
 	 */
 	WMAnalysis(string trace_file = "", bool graph = false,
-			bool functions = false, bool allocations = false);
+			bool functions = false, bool allocations = false,
+			bool time_search = false, double time_val=0.0);
 
 
 	/*

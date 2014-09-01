@@ -29,14 +29,14 @@ void ConsumptionGraph::addAllocation(double time, long memory) {
 		consumption.push_back(pair<double, long>(time, memory));
 }
 
-void ConsumptionGraph::dumpGraphToFile() {
+void ConsumptionGraph::dumpGraphToFile(double finishtime) {
 	/* Ensure we don't print the graph if we are only collecting the data for samples */
 	if (samples)
 		return;
 
-	double time = 0.0;
-	if (!consumption.empty())
-		time = consumption.back().first;
+	double time = finishtime;
+	//if (!consumption.empty())
+	//	time = consumption.back().first;
 
 	ofstream graphfile(outfile_name.c_str());
 
@@ -49,8 +49,11 @@ void ConsumptionGraph::dumpGraphToFile() {
 
 	double limit = (elf + local_HWM) / GRAPHINTERVAL;
 
+        long last_mem = 0;
+
 	while (!consumption.empty()) {
-		if (abs(consumption.front().second - old) > limit) {
+                last_mem = consumption.front().second;
+		if (abs(last_mem - old) > limit) {
 			graphfile << consumption.front().first << "\t"
 					<< (consumption.front().first / time) * 100 << "\t"
 					<< (double) (elf + consumption.front().second)
@@ -59,6 +62,8 @@ void ConsumptionGraph::dumpGraphToFile() {
 		}
 		consumption.pop_front();
 	}
+	graphfile << time << "\t100\t" << (double) (elf + last_mem)
+                                                        / (1024 * 1024) << "\n";
 	graphfile << "\" >> trace.plot \n";
 
 	graphfile
@@ -78,7 +83,7 @@ void ConsumptionGraph::dumpGraphToFile() {
 	graphfile << "set xlabel \"Time (%)\"\n";
 	graphfile << "set ylabel \"Memory (MB)\"\n";
 
-	graphfile << "#set xrange [50:21000]\n";
+	graphfile << "set xrange [0:100]\n";
 	graphfile << "set yrange [0:]\n";
 
 	graphfile << "set style line 1 lt -1 lw 0.3\n";

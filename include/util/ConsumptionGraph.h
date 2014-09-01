@@ -80,8 +80,9 @@ public:
 	 * Trigger the finish of the data structure occurring at time.
 	 * Use time to calculate percentage times of points.
 	 * We can get the total time from the time event of the last entry.
+	 * @param finishtime The time stamp of the last sample to mark the end of graph as
 	 */
-	void dumpGraphToFile();
+	void dumpGraphToFile(double finishtime);
 
 	/**
 	 * Using the data of all the allocation points reduce to a vector of samples points.

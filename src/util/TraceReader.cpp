@@ -1,7 +1,7 @@
 #include "../../include/util/TraceReader.h"
 
 TraceReader::TraceReader(string filename, bool consumptionGraph,
-		bool functionGraph, bool allocationGraph, bool samples, long searchID) {
+		bool functionGraph, bool allocationGraph, bool samples, long searchID, double searchTime) {
 	/* Set simple / complex flags */
 	/* Consumption graph not considered complex as doesn't use any other info. */
 	this->complex = functionGraph || allocationGraph;
@@ -10,6 +10,7 @@ TraceReader::TraceReader(string filename, bool consumptionGraph,
 	this->allocation_graph = allocationGraph;
 	this->samples = samples;
 	this->searchID = searchID;
+	this->searchTime = searchTime;
 
 	/* Ensure there is consistency with flags */
 	if (samples)
@@ -366,7 +367,10 @@ bool TraceReader::checkIDSearch(long id) {
 		return false;
 
 	/* If found set the quick finish to true */
-	if (id == searchID)
+	if (searchID != -1 && id == searchID)
+		quick_finish = true;
+
+	if(searchTime > 0.0 && hwm_tracker->getCurrTime() > searchTime)
 		quick_finish = true;
 
 	return quick_finish;
@@ -384,6 +388,12 @@ vector<string> TraceReader::getCallStack(int id) {
 	/* Convert each address from a pointer to a string */
   	for (i = 0; i < address_count; i++) {
 		functions[i] = f_map->getFunctionFromAddress(addresses[i]);
+                functions[i].append(" - Ox");
+                   
+                stringstream stream;
+                stream << std::hex << addresses[i];
+  
+                functions[i].append(stream.str());
 	}
 
 	return functions;

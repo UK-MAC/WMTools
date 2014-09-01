@@ -4,20 +4,120 @@
 #include <stdlib.h>
 #include <iostream>
 #include <stack>
+#include <unistd.h>
+#include "../include/f2c.h"
 
 #include "../include/WMTimer.h"
 #include "../include/WMTrace.h"
 #include "../include/WMAnalysis.h"
 #include "../include/util/TraceReader.h"
 
-WMTrace *WMT = NULL;
 
+#ifndef _EXTERN_C_
+#ifdef __cplusplus
+#define _EXTERN_C_ extern "C"
+#else /* __cplusplus */
+#define _EXTERN_C_
+#endif /* __cplusplus */
+#endif /* _EXTERN_C_ */
+
+
+
+
+
+WMTrace *WMT = NULL;
+int fortran_init = -1;
+int init_called = 0;
 extern "C" {
 extern __typeof (malloc) __libc_malloc;
 extern __typeof (calloc) __libc_calloc;
 extern __typeof (realloc) __libc_realloc;
 extern __typeof (free) __libc_free;
 }
+
+_EXTERN_C_ void pmpi_init(MPI_Fint *ierr);
+_EXTERN_C_ void PMPI_INIT(MPI_Fint *ierr);
+_EXTERN_C_ void pmpi_init_(MPI_Fint *ierr);
+_EXTERN_C_ void pmpi_init__(MPI_Fint *ierr);
+static void MPI_Init_fortran_wrapper(MPI_Fint *ierr) {
+    int argc = 0;
+    char ** argv = NULL;
+    int _wrap_py_return_val = 0;
+    _wrap_py_return_val = MPI_Init(&argc, &argv);
+    *ierr = _wrap_py_return_val;
+}
+
+_EXTERN_C_ void MPI_INIT(MPI_Fint *ierr) {
+    fortran_init = 1;
+    MPI_Init_fortran_wrapper(ierr);
+}
+
+_EXTERN_C_ void mpi_init(MPI_Fint *ierr) {
+    fortran_init = 2;
+    MPI_Init_fortran_wrapper(ierr);
+}
+
+_EXTERN_C_ void mpi_init_(MPI_Fint *ierr) {
+    fortran_init = 3;
+    MPI_Init_fortran_wrapper(ierr);
+}
+
+_EXTERN_C_ void mpi_init__(MPI_Fint *ierr) {
+    fortran_init = 4;
+    MPI_Init_fortran_wrapper(ierr);
+}
+
+
+
+void init(){
+	if(init_called) return;
+	int flag;
+	MPI_Initialized(&flag);
+	if(WMT == NULL && flag){
+	init_called=1;
+	int rank, comm;
+
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &comm);
+
+	WMT = new WMTrace();
+        
+	WMT->setRank(rank);
+        WMT->setCommSize(comm);
+
+        /* Read from config file */
+        char line[256];
+        /* Try ./.WMToolsConfig then ~/.WMToolsConfig if not found */
+        ifstream local_file(".WMToolsConfig");
+        if (!local_file.good())
+                local_file.open("~/.WMToolsConfig");
+
+        if (local_file.good()) {
+                while (!local_file.eof()) {
+                        local_file.getline(line, 256);
+                        if (strcmp(line, "--WMTOOLSCOMPLEX") == 0) {
+                                WMT->setComplexTrace(true);
+                        } else if (strcmp(line, "--WMTOOLSPOSTPROCESS") == 0) {
+                                WMT->setPostProcess(true);
+                        } else if (strcmp(line, "--WMTOOLSPOSTPROCESSGRAPH") == 0) {
+                                WMT->setPostProcess(true);
+                                WMT->setPostProcessGraph(true);
+                        } else if (strcmp(line, "--WMTOOLSPOSTPROCESSFUNCTIONS") == 0) {
+                                WMT->setPostProcess(true);
+                                WMT->setPostProcessFunctions(true);
+                        }
+                }
+
+        }
+
+        /* Barrier to ensure same start time */
+        //MPI_Barrier (MPI_COMM_WORLD);
+        WMT->startTracing();
+
+	}
+
+}
+
 
 /**
  * Wrapper to MPI_Init
@@ -27,62 +127,36 @@ extern __typeof (free) __libc_free;
  * @return MPI_Error of function
  */
 int MPI_Init(int *argc, char ***argv) {
+	int ret = 0;
+	
+	
 
-	int ret = PMPI_Init(argc, argv);
-	WMT = new WMTrace();
+	switch (fortran_init) {
+	case -1: ret = PMPI_Init(argc, argv);      break;
+        case 1: PMPI_INIT(&ret);   break;
+        case 2: pmpi_init(&ret);   break;
+        case 3: pmpi_init_(&ret);  break;
+        case 4: pmpi_init__(&ret); break;
+        default:
+            fprintf(stderr, "NO SUITABLE FORTRAN MPI_INIT BINDING\n");
+            break;
+        }
 
-	/* Read from config file */
-	char line[256];
-	/* Try ./.WMToolsConfig then ~/.WMToolsConfig if not found */
-	ifstream local_file(".WMToolsConfig");
-	if (!local_file.good())
-		local_file.open("~/.WMToolsConfig");
 
-	if (local_file.good()) {
-		while (!local_file.eof()) {
-			local_file.getline(line, 256);
-			if (strcmp(line, "--WMTOOLSCOMPLEX") == 0) {
-				WMT->setComplexTrace(true);
-			} else if (strcmp(line, "--WMTOOLSPOSTPROCESS") == 0) {
-				WMT->setPostProcess(true);
-			} else if (strcmp(line, "--WMTOOLSPOSTPROCESSGRAPH") == 0) {
-				WMT->setPostProcess(true);
-				WMT->setPostProcessGraph(true);
-			} else if (strcmp(line, "--WMTOOLSPOSTPROCESSFUNCTIONS") == 0) {
-				WMT->setPostProcess(true);
-				WMT->setPostProcessFunctions(true);
-			}
-		}
-
-	}
-
-	int rank, comm;
-
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &comm);
-
-	WMT->setRank(rank);
-	WMT->setCommSize(comm);
-
-	/* Barrier to ensure same start time */
-	MPI_Barrier (MPI_COMM_WORLD);
-
-	WMT->startTracing();
-
+	
+	init();
 	return ret;
 }
 
-/**
- * Wrapper to MPI_Finalize
- * @return MPI_Error
- */
-int MPI_Finalize() {
+
+
+void fini(){
 
 	WMT->finishTracing();
 
 	/* Only post process if we have told it to */
 	if (WMT->isPostProcess()) {
-		WMAnalysis *wm = new WMAnalysis(WMUtils::makeFileName(), WMT->isPostProcessGraph(), WMT->isPostProcessFunctions(), false);
+		WMAnalysis *wm = new WMAnalysis(WMUtils::makeFileName(), WMT->isPostProcessGraph(), WMT->isPostProcessFunctions(), false, false);
 		TraceReader *tr = wm->getTraceReader();
 		//TraceReader *tr = new TraceReader(WMUtils::makeFileName(),
 				//WMT->isPostProcessGraph(), WMT->isPostProcessFunctions());
@@ -126,10 +200,53 @@ int MPI_Finalize() {
 		delete wm;
 	}
 
+}
+
+/**
+ * Wrapper to MPI_Finalize
+ * @return MPI_Error
+ */
+int MPI_Finalize() {
+
+	fini();
+
 	int ret = PMPI_Finalize();
 
 	return ret;
 }
+
+
+static void MPI_Finalize_fortran_wrapper(MPI_Fint *ierr) {
+    int _wrap_py_return_val = 0;
+    _wrap_py_return_val = MPI_Finalize();
+    *ierr = _wrap_py_return_val;
+}
+
+_EXTERN_C_ void MPI_FINALIZE(MPI_Fint *ierr) {
+    MPI_Finalize_fortran_wrapper(ierr);
+}
+
+_EXTERN_C_ void mpi_finalize(MPI_Fint *ierr) {
+    MPI_Finalize_fortran_wrapper(ierr);
+}
+
+_EXTERN_C_ void mpi_finalize_(MPI_Fint *ierr) {
+    MPI_Finalize_fortran_wrapper(ierr);
+}
+
+_EXTERN_C_ void mpi_finalize__(MPI_Fint *ierr) {
+    MPI_Finalize_fortran_wrapper(ierr);
+}
+
+
+
+
+
+
+
+
+
+
 
 //extern "C" {
 /**

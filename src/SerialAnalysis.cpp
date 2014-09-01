@@ -14,6 +14,8 @@ int main(int argc, char* argv[]) {
 	bool allocations = false;
 
 	bool single_file = false;
+	bool time_search = false;
+	double time_val = 0.0;
 
 	/* Default to file - may fail */
 	string filename("WMTrace/trace-0.z");
@@ -27,7 +29,11 @@ int main(int argc, char* argv[]) {
 			functions = true;
 		else if (arg.compare("--allocations") == 0)
 			allocations = true;
-		else if (arg.compare("--help") == 0) {
+		else if (arg.compare("--time") == 0){
+			time_search = true;
+			i++;
+			time_val =  atof(argv[i]);
+		}else if (arg.compare("--help") == 0) {
 			cout << "Usage for WMAnalysis\n";
 			cout << "Optional arguments: \n";
 			cout
@@ -52,7 +58,7 @@ int main(int argc, char* argv[]) {
 
 	}
 
-	WMAnalysis *wm = new WMAnalysis(filename, graph, functions, allocations);
+	WMAnalysis *wm = new WMAnalysis(filename, graph, functions, allocations, time_search, time_val);
 
 	/* Extract the trace readers- to get at actual data */
 	TraceReader * tr = wm->getTraceReader();

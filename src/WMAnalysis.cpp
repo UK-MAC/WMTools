@@ -2,7 +2,7 @@
 
 
 WMAnalysis::WMAnalysis(string tracefile, bool graph, bool functions,
-		bool allocations) {
+		bool allocations, bool time_search, double time_val) {
 
 	/* Generate a tracefile name (from rank id) if not provided with one */
 	if (tracefile.empty())
@@ -14,6 +14,20 @@ WMAnalysis::WMAnalysis(string tracefile, bool graph, bool functions,
 	allocation_graph = graph;
 	hwm_profile = functions;
 	hwm_allocations = allocations;
+
+
+	/* First check if we are doing a time search */
+	if(time_search){
+
+		trace_reader = new TraceReader(tracefile, false, true,
+                                allocations, false, -1, time_val);
+
+		
+                    generateFunctionBreakdown(trace_reader);
+		return;
+	}
+
+
 
 	/* Make a new trace reader with the flags + perform first iteration */
 	trace_reader = new TraceReader(tracefile, allocation_graph);
@@ -43,7 +57,7 @@ void WMAnalysis::generateFunctionBreakdown(TraceReader * tr) {
 			call_sites.begin(), call_sites.end());
 
 	/* Get High Water Mark */
-	long HWM = tr->getHWMMemory();
+	long HWM = tr->getCurrMemory();
 
 	/* Make a temp string buffer for writing to */
 	stringstream temp_stream (stringstream::in | stringstream::out);
@@ -109,7 +123,7 @@ void WMAnalysis::generateFunctionBreakdown(TraceReader * tr) {
 
 	hwm_file << "# HWM Functions file from WMTools - " << hwm_filename
 			<< " HWM of " << HWM << "(B)\n";
-	hwm_file << "#\n";
+	hwm_file << "# Time: " << tr->getCurrTime() << " (s)\n";
 
 	/* Dump MPI Memory to file */
 	mpi_memory_percentage = (((double) mpi_memory) / HWM)*100;

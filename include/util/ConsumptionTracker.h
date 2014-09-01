@@ -135,6 +135,24 @@ public:
 	}
 
 	/**
+ 	*  Return the current time in the simulation
+ 	*
+ 	*/ 
+	double getCurrTime(){
+		return curr_time;
+	}
+
+
+	/**
+        *  Return the current time in the simulation
+ 	*/
+        long getCurrMemory(){
+                return curr_memory;
+        }
+
+
+
+	/**
 	 * Function to mark the end of trace reading.
 	 * Chance to update the final variable as if a free.
 	 */

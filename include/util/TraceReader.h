@@ -14,7 +14,6 @@
 #include "malloc_obj.h"
 #include "free_obj.h"
 
-#include <iomanip>
 #include <iostream>
 #include <assert.h>
 #include <set>
@@ -59,6 +58,10 @@ private:
 
 	/* The ID of the allocation to search for */
 	long searchID;
+
+	/* The Time in s to search for */
+	double searchTime;
+	
 	/* Variable to mark the quick escape of the tracer */
 	bool quick_finish;
 	/* Store the elf recorded static memory */
@@ -193,10 +196,11 @@ public:
 	 * @param allocationGraph Should we produce an allocation breakdown at high water mark
 	 * @param samples Should we collect point information for heat map samples
 	 * @param searchID Specify a an allocation ID to search for - used to support multipass searches
+	 * @param searchTime Stop at a specific time
 	 */
 	TraceReader(string filename = "", bool consumptionGraph = false,
 			bool functionGraph = false, bool allocationGraph = false,
-			bool samples = false, long searchID = -1);
+			bool samples = false, long searchID = -1, double searchTime = -1);
 
 	/**
 	 * Deconstructor for the TraceReader object.
@@ -227,6 +231,16 @@ public:
 	long getHWMID() {
 		return hwm_tracker->getHighWaterMarkID();
 	}
+
+	long getCurrMemory(){
+		return hwm_tracker->getCurrMemory();
+	}
+
+
+	double getCurrTime(){
+		return hwm_tracker->getCurrTime();
+	}
+
 
 	/**
 	 * A function the return the amount of memory allocated by different function call stacks.
